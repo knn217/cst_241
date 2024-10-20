@@ -1,5 +1,6 @@
 # Python program to convert JSON to Python
 import os
+import numpy as np
 
 def getDir(file_name):
     full_path = os.path.realpath(__file__)
@@ -31,13 +32,18 @@ def smartParse(str):
         pass
     return str
 
-def extractCSV(txt, filter = []):
+def extractCSV(txt, filter=[]):
+    title = None
     data = []
     for line in txt:
         line_data = line.split(',')
         for i in filter:
             line_data.pop(i)
-        new_data = [smartParse(i) for i in line_data]
+        if not title:
+            title = [smartParse(i) for i in line_data]
+        new_data = {}
+        for i in range(len(line_data)):
+            new_data.update({title[i]: smartParse(line_data[i])})
         #print(new_data)
         data.append(new_data)
     return data[1:]
@@ -52,4 +58,25 @@ def extractData():
     data_nodes = extractCSV(data_nodes)
     #print(data_nodes[0])
     
+    # TRAIN.CVS ==========================================
+    # s_node_id, e_node_id, length, street_id, street_name, long_snode, lat_snode, long_enode, lat_enode
+    # [
+    #    [..],
+    #    [..],
+    #    [..],
+    #    ...
+    #    [..],    
+    # ]
+    
+    # NODES.CVS ==========================================
+    # _id, long, lat
+    # [
+    #    [..],
+    #    [..],
+    #    [..],
+    #    ...
+    #    [..],    
+    # ]
+    
+    print(np.asarray(data_edges))
     return data_nodes, data_edges

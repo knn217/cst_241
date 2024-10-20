@@ -1,53 +1,51 @@
 from extract import extractData
 import numpy as np
 
-def getDestList(paths, start, total_time = 0):
+def getDestList(paths, start, total_length = 0):
     destinations = []
     for i in range(len(paths)):
-        if (paths[i][0] == start):
-            destinations.append([
-                paths[i][1],              # dest
-                paths[i][2],              # travel_time
-                total_time + paths[i][2], # total_time
-                False                     # stop
-                ])
+        if (paths[i]['s_node_id'] == start):
+            destinations.append({
+                'e_node_id': paths[i]['e_node_id'], 
+                'length': paths[i]['length'], 
+                'total_length': total_length + paths[i]['length'],
+                'stop': False 
+                })
 #    print(destinations)
     return destinations
 
-def bruteForce(paths, start, dest, total_time = 0, history = {}):
-    print(history)
-    print(start)
+def bruteForce(paths, start, end, total_length = 0, history = {}):
+    #print(history)
+    #print(start)
     if (start in history):
         print('looped')
         return []
     histories = []
-    destinations = getDestList(paths, start, total_time)
-    print(np.asarray(destinations))
+    destinations = getDestList(paths, start, total_length)
+    #print(np.asarray(destinations))
     for each_dest in destinations:
         new_hist = history.copy()
-        new_hist.update({start: total_time})
-        print(new_hist)
-        if (dest in new_hist):
+        new_hist.update({start: total_length})
+        if (end in new_hist):
             print('reached dest')
             return [new_hist]    
-        histories += bruteForce(paths, each_dest[0], dest, each_dest[2], new_hist)
-       
+        histories += bruteForce(paths, each_dest['e_node_id'], end, each_dest['total_length'], new_hist)
+        
     return histories
 
 paths_FloydWarshall_example = [
-    # start, dest, travel_time
-    [1, 2, 1],
-    [1, 4, 4],
-    [2, 1, 2],
-    [2, 3, -2],
-    [3, 1, 3],
-    [4, 1, 4],
-    [4, 2, -5],
-    [4, 3, -1]
+    {'s_node_id': 1, 'e_node_id': 2, 'length': 1},
+    {'s_node_id': 1, 'e_node_id': 4, 'length': 4},
+    {'s_node_id': 2, 'e_node_id': 1, 'length': 2},
+    {'s_node_id': 2, 'e_node_id': 3, 'length': -2},
+    {'s_node_id': 3, 'e_node_id': 1, 'length': 3},
+    {'s_node_id': 4, 'e_node_id': 1, 'length': 4},
+    {'s_node_id': 4, 'e_node_id': 2, 'length': -5},
+    {'s_node_id': 4, 'e_node_id': 3, 'length': -1}
 ]
 
 #print(*bruteForce(paths_FloydWarshall_example, 1, 3), sep='\n')
 
 nodes, edges = extractData()
 #print(edges)
-print(*bruteForce(edges, 366428456, 366416066), sep='\n')
+print(*bruteForce(edges, 4639027499, 366430703), sep='\n')
