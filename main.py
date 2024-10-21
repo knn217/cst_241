@@ -1,5 +1,6 @@
 from extract import extractData
-import numpy as np
+import time  
+#import numpy as np
 
 def getDestList(paths, start, total_length = 0):
     destinations = []
@@ -33,6 +34,12 @@ def bruteForce(paths, start, end, total_length = 0, history = {}):
         
     return histories
 
+def benchmark(algo_func, paths, start, end):
+    start_time = time.time()
+    result = algo_func(paths, start, end)
+    end_time = time.time()
+    return result, (end_time-start_time)
+
 paths_FloydWarshall_example = [
     {'s_node_id': 1, 'e_node_id': 2, 'length': 1},
     {'s_node_id': 1, 'e_node_id': 4, 'length': 4},
@@ -48,4 +55,9 @@ paths_FloydWarshall_example = [
 
 nodes, edges = extractData()
 #print(edges)
-print(*bruteForce(edges, 4639027499, 366430703), sep='\n')
+found_paths, run_time = benchmark(bruteForce, edges, 4639027499, 366430703)
+print('==============================================')
+print('Found paths:')
+print(*found_paths, sep='\n')
+print('\nTime elapsed:')
+print(run_time)

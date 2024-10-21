@@ -14,7 +14,7 @@ def saveToTxt(data, name):
     with open(dir, 'w', encoding='utf8') as f:
         for line in data:
             #print(line)
-            f.write(line)
+            f.write(str(line) + "\n")
     return
 
 def smartParse(str):
@@ -52,10 +52,20 @@ def extractData():
     dir_edges = getDir('train.csv')
     data_edges = open(dir_edges, encoding='utf8')
     data_edges = extractCSV(data_edges, [13, 10, 9, 5, 4, 3, 2, 1, 0]) # pop filter from last to 1st
+    data_edges = [dict(t) for t in {tuple(d.items()) for d in data_edges}] # remove duplicates
+    #for i in data_edges:
+    #    print(i)
+    print('Number of edges: ', len(data_edges))
+    saveToTxt(data_edges, 'log/edges.txt') # save to log
 
     dir_nodes = getDir('nodes.csv')
     data_nodes = open(dir_nodes, encoding='utf8')
     data_nodes = extractCSV(data_nodes)
+    data_nodes = [dict(t) for t in {tuple(d.items()) for d in data_nodes}] # remove duplicates
+    #for i in data_nodes:
+    #    print(i)
+    print('Number of nodes: ', len(data_nodes))
+    saveToTxt(data_nodes, 'log/nodes.txt') # save to log
     #print(data_nodes[0])
     
     # TRAIN.CVS ==========================================
@@ -78,5 +88,5 @@ def extractData():
     #    [..],    
     # ]
     
-    print(np.asarray(data_edges))
+    #print(np.asarray(data_edges))
     return data_nodes, data_edges
