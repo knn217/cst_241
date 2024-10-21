@@ -1,6 +1,5 @@
 # Python program to convert JSON to Python
 import os
-import numpy as np
 
 def getDir(file_name):
     full_path = os.path.realpath(__file__)
@@ -88,5 +87,4 @@ def extractData():
     #    [..],    
     # ]
     
-    #print(np.asarray(data_edges))
     return data_nodes, data_edges
