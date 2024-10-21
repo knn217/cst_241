@@ -1,5 +1,6 @@
 # Python program to convert JSON to Python
 import os
+import sys
 
 def getDir(file_name):
     full_path = os.path.realpath(__file__)
@@ -15,6 +16,18 @@ def saveToTxt(data, name):
             #print(line)
             f.write(str(line) + "\n")
     return
+
+def getMap(nodes):
+    max_lon = sys.float_info.min
+    max_lat = sys.float_info.min
+    min_lon = sys.float_info.max
+    min_lat = sys.float_info.max
+    for i in nodes:
+        max_lon = max(max_lon, i['long'])
+        min_lon = min(min_lon, i['long'])
+        max_lat = max(max_lat, i['lat'])
+        min_lat = min(min_lat, i['lat'])
+    return max_lon, min_lon, max_lat, min_lat
 
 def smartParse(str):
     str = str.replace("\n","")
@@ -51,7 +64,7 @@ def extractData():
     dir_edges = getDir('train.csv')
     data_edges = open(dir_edges, encoding='utf8')
     data_edges = extractCSV(data_edges, [13, 10, 9, 5, 4, 3, 2, 1, 0]) # pop filter from last to 1st
-    data_edges = sorted([dict(t) for t in {tuple(d.items()) for d in data_edges}], key=lambda d: d['s_node_id']) # remove duplicates
+    data_edges = sorted([dict(t) for t in {tuple(d.items()) for d in data_edges}], key=lambda d: (d['s_node_id'], d['e_node_id'])) # remove duplicates
     #for i in data_edges:
     #    print(i)
     print('Number of edges: ', len(data_edges))
@@ -86,5 +99,5 @@ def extractData():
     #    ...
     #    [..],    
     # ]
-    
+    print(getMap(data_nodes))
     return data_nodes, data_edges
