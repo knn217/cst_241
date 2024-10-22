@@ -1,6 +1,5 @@
 # Python program to convert JSON to Python
 import os
-import sys
 
 def getDir(file_name):
     full_path = os.path.realpath(__file__)
@@ -18,10 +17,10 @@ def saveToTxt(data, name):
     return
 
 def getMap(nodes):
-    max_lon = sys.float_info.min
-    max_lat = sys.float_info.min
-    min_lon = sys.float_info.max
-    min_lat = sys.float_info.max
+    max_lon = float('-inf')
+    max_lat = float('-inf')
+    min_lon = float('inf')
+    min_lat = float('inf')
     for i in nodes:
         max_lon = max(max_lon, i['long'])
         min_lon = min(min_lon, i['long'])
