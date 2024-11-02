@@ -94,4 +94,4 @@ def runAlgorithm(algorithm, map_name):
     return
 
 if __name__ == "__main__":
-    runAlgorithm(bruteForce, 'fullgraph.osm')
+    runAlgorithm(bruteForce, 'newgraph_conso.osm')
