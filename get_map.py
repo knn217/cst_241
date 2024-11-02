@@ -41,6 +41,29 @@ def getMap(m_dist_from_center=2000, intersection=0.3, max_lon=106.8679941, min_l
 
 
 #getMap()
+#G = ox.graph_from_bbox(bbox=(10.8889982, 10.6760012, 106.8679941, 106.5360046), network_type='all_public', retain_all=True)
+#ox.io.save_graphml(G, filepath=getDir('./') + 'newgraph.osm')
+
+'''
+G_1 = ox.io.load_graphml(filepath=getDir('./fullgraph.osm'))
+print('G_1: ', G_1)
+G_proj = ox.project_graph(G_1)
+
+# consolidate the network
+G_2 = ox.consolidate_intersections(G_proj, rebuild_graph=True, tolerance=15, dead_ends=False)
+ox.io.save_graphml(G_2, filepath=getDir('./') + 'fullgraph_conso.osm')
+print('G_2: ', G_2)
+
+# simplify the network
+G_3 = ox.simplify_graph(G_1)
+ox.io.save_graphml(G_3, filepath=getDir('./') + 'fullgraph_simpl_strict.osm')
+print('G_3: ', G_3)
+
+# simplify network with strict mode turned off
+G_4 = ox.simplify_graph(G_1.copy(), edge_attrs_differ=["osmid"])
+ox.io.save_graphml(G_4, filepath=getDir('./') + 'fullgraph_simpl.osm')
+print('G_4: ', G_4)
+'''
 
 
 '''

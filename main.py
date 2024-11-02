@@ -63,9 +63,9 @@ def edgeConverter(edges_format_1):
     edges_format_2 = [{'s_node_id': i[0], 'e_node_id': i[1], 'length': edges_format_1[i]['length']} for i in edges_format_1]
     return edges_format_2
 
-def bruteforce():
+def runAlgorithm(algorithm, map_name):
     # load the graph from map file
-    graph = loadMap()
+    graph = loadMap(map_name)
     
     # pick start and end point randomly (seeded)
     random.seed(10)
@@ -75,7 +75,7 @@ def bruteforce():
     
     # convert edge to our format
     edges_format_ours = edgeConverter(graph.edges)
-    found_paths, run_time = benchmark(bruteForce, edges_format_ours, start, end)
+    found_paths, run_time = benchmark(algorithm, edges_format_ours, start, end)
     print('==============================================')
     print('Found paths:')
     print(*found_paths, sep='\n')
@@ -94,4 +94,4 @@ def bruteforce():
     return
 
 if __name__ == "__main__":
-    bruteforce()
+    runAlgorithm(bruteForce, 'fullgraph.osm')
