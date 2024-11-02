@@ -41,12 +41,13 @@ def getMap(m_dist_from_center=2000, intersection=0.3, max_lon=106.8679941, min_l
 
 
 #getMap()
-#G = ox.graph_from_bbox(bbox=(10.8889982, 10.6760012, 106.8679941, 106.5360046), network_type='drive', retain_all=True)
+#G = ox.graph_from_bbox(bbox=(10.81864,10.78786,106.71535,106.64738), network_type='drive', retain_all=True)
 #ox.io.save_graphml(G, filepath=getDir('./') + 'newgraph.osm')
+#print('G: ', G)
 
 #G_1 = ox.io.load_graphml(filepath=getDir('./newgraph_conso.osm'))
 #ox.plot.plot_graph(G_1, node_size=1)
-
+'''
 G_1 = ox.io.load_graphml(filepath=getDir('./newgraph.osm'))
 print('G_1: ', G_1)
 G_proj = ox.project_graph(G_1)
@@ -65,7 +66,7 @@ print('G_3: ', G_3)
 G_4 = ox.simplify_graph(G_1.copy(), edge_attrs_differ=["osmid"])
 ox.io.save_graphml(G_4, filepath=getDir('./') + 'newgraph_simpl.osm')
 print('G_4: ', G_4)
-
+'''
 
 '''
 G = ox.graph.graph_from_point((lat, lon), dist=distance, network_type="drive")
