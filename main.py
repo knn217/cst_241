@@ -3,38 +3,7 @@ import time
 from load_map import loadMap
 import random
 #import numpy as np
-
-def getDestList(paths, start, total_length = 0):
-    destinations = []
-    for i in range(len(paths)):
-        if (paths[i]['s_node_id'] == start):
-            destinations.append({
-                'e_node_id': paths[i]['e_node_id'], 
-                'length': paths[i]['length'], 
-                'total_length': total_length + paths[i]['length'],
-                'stop': False 
-                })
-#    print(destinations)
-    return destinations
-
-def bruteForce(paths, start, end, total_length = 0, history = {}):
-    #print(history)
-    #print(start)
-    if (start in history):
-        #print('looped')
-        return []
-    histories = []
-    destinations = getDestList(paths, start, total_length)
-    #print(np.asarray(destinations))
-    for each_dest in destinations:
-        new_hist = history.copy()
-        new_hist.update({start: total_length})
-        if (end in new_hist):
-            print('reached dest')
-            return [new_hist]    
-        histories += bruteForce(paths, each_dest['e_node_id'], end, each_dest['total_length'], new_hist)
-        
-    return histories
+from algorithms import bruteForce, dijkstra, bellman_ford
 
 def benchmark(algo_func, paths, start, end):
     start_time = time.time()
@@ -43,14 +12,14 @@ def benchmark(algo_func, paths, start, end):
     return result, (end_time-start_time)
 
 paths_FloydWarshall_example = [
-    {'s_node_id': 1, 'e_node_id': 2, 'length': 1},
-    {'s_node_id': 1, 'e_node_id': 4, 'length': 4},
-    {'s_node_id': 2, 'e_node_id': 1, 'length': 2},
-    {'s_node_id': 2, 'e_node_id': 3, 'length': -2},
-    {'s_node_id': 3, 'e_node_id': 1, 'length': 3},
-    {'s_node_id': 4, 'e_node_id': 1, 'length': 4},
-    {'s_node_id': 4, 'e_node_id': 2, 'length': -5},
-    {'s_node_id': 4, 'e_node_id': 3, 'length': -1}
+    {'start': 1, 'dest': 2, 'travel_time': 1},
+    {'start': 1, 'dest': 4, 'travel_time': 4},
+    {'start': 2, 'dest': 1, 'travel_time': 2},
+    {'start': 2, 'dest': 3, 'travel_time': -2},
+    {'start': 3, 'dest': 1, 'travel_time': 3},
+    {'start': 4, 'dest': 1, 'travel_time': 4},
+    {'start': 4, 'dest': 2, 'travel_time': -5},
+    {'start': 4, 'dest': 3, 'travel_time': -1}
 ]
 
 #print(*bruteForce(paths_FloydWarshall_example, 1, 3), sep='\n')
@@ -60,7 +29,7 @@ def edgeConverter(edges_format_1):
     #    print(i)
     #    print(edges_format_1[i])
     
-    edges_format_2 = [{'s_node_id': i[0], 'e_node_id': i[1], 'length': edges_format_1[i]['length']} for i in edges_format_1]
+    edges_format_2 = [{'start': i[0], 'dest': i[1], 'travel_time': edges_format_1[i]['length']} for i in edges_format_1]
     return edges_format_2
 
 def runAlgorithm(algorithm, map_name):
