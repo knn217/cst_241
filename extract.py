@@ -26,6 +26,8 @@ def getMap(nodes):
         min_lon = min(min_lon, i['long'])
         max_lat = max(max_lat, i['lat'])
         min_lat = min(min_lat, i['lat'])
+    print(max_lon, min_lon, max_lat, min_lat)
+    print((max_lon + min_lon)/2, (max_lat + min_lat)/2, (max_lon - min_lon)/2, (max_lat - min_lat)/2)
     return max_lon, min_lon, max_lat, min_lat
 
 def smartParse(str):
@@ -98,5 +100,6 @@ def extractData():
     #    ...
     #    [..],    
     # ]
-    print(getMap(data_nodes))
+    
+    getMap(data_nodes)
     return data_nodes, data_edges
