@@ -1,6 +1,7 @@
 from extract import extractData
 import time
 from load_map import loadMap
+import random
 #import numpy as np
 
 def getDestList(paths, start, total_length = 0):
@@ -20,7 +21,7 @@ def bruteForce(paths, start, end, total_length = 0, history = {}):
     #print(history)
     #print(start)
     if (start in history):
-        print('looped')
+        #print('looped')
         return []
     histories = []
     destinations = getDestList(paths, start, total_length)
@@ -54,7 +55,33 @@ paths_FloydWarshall_example = [
 
 #print(*bruteForce(paths_FloydWarshall_example, 1, 3), sep='\n')
 
+def edgeConverter(edges_format_1):
+    #for i in edges_format_1:
+    #    print(i)
+    #    print(edges_format_1[i])
+    
+    edges_format_2 = [{'s_node_id': i[0], 'e_node_id': i[1], 'length': edges_format_1[i]['length']} for i in edges_format_1]
+    return edges_format_2
+
 def bruteforce():
+    # load the graph from map file
+    graph = loadMap()
+    
+    # pick start and end point randomly (seeded)
+    random.seed(10)
+    start, end = random.sample(sorted(graph._node), 2)
+    print('start: ', start)
+    print('end: ', end)
+    
+    # convert edge to our format
+    edges_format_ours = edgeConverter(graph.edges)
+    found_paths, run_time = benchmark(bruteForce, edges_format_ours, start, end)
+    print('==============================================')
+    print('Found paths:')
+    print(*found_paths, sep='\n')
+    print('\nTime elapsed:')
+    print(run_time)
+    '''
     nodes, edges = extractData()
     #print(edges)
     found_paths, run_time = benchmark(bruteForce, edges, 4639027499, 366430703)
@@ -63,6 +90,7 @@ def bruteforce():
     print(*found_paths, sep='\n')
     print('\nTime elapsed:')
     print(run_time)
+    '''
     return
 
 if __name__ == "__main__":

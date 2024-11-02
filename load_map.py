@@ -4,6 +4,8 @@ import math
 import numpy as np
 from extract import getDir
 
+ox.settings.use_cache = True
+
 def loadMap():
     # load map from file
     G = ox.io.load_graphml(filepath=getDir('./fullgraph.osm'))
