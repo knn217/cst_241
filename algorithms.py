@@ -27,7 +27,7 @@ def bruteForce(paths, start, end, total_travel_time = 0, history = {}):
         new_hist.update({start: total_travel_time})
         if (end in new_hist):
             print('reached dest')
-            print(history)
+            print(new_hist)
             return [new_hist]    
         histories += bruteForce(paths, each_dest['dest'], end, each_dest['total_travel_time'], new_hist)
         

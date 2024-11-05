@@ -6,10 +6,37 @@ from extract import getDir
 
 ox.settings.use_cache = True
 
+def removeNodes(graph):
+    # Select all nodes with only 2 neighbors
+    nodes_to_remove = [n for n in graph.nodes if len(list(graph.neighbors(n))) == 2]
+
+    # For each of those nodes
+    for node in nodes_to_remove:
+        # get the number of neigbors for each node
+        neghbors = len(list(graph.neighbors(node)))
+        # case 1: 1 neighbors -> remove
+        if neghbors == 1:
+            graph.remove_node(node)
+        # case 2: 2 neighbors -> remove, connect the neighbors
+        elif neghbors == 2:
+            # We add an edge between neighbors (len == 2 so it is correct)
+            graph.add_edge(*graph.neighbors(node))
+            # And delete the node
+            graph.remove_node(node)
+    return graph
+
 def loadMap(map_name):
     # load map from file
     G = ox.io.load_graphml(filepath=getDir(map_name))
     print('G: ', G)
+    G = removeNodes(G)
+    print('G: ', G)
+    G = nx.DiGraph(G)
+    #G = ox.convert.to_digraph(G, weight='length')
+    print('G: ', G)
+    G = removeNodes(G)
+    print('G: ', G)
+    
     '''
     # impute edge (driving) speeds and calculate edge travel times
     G = ox.speed.add_edge_speeds(G)
@@ -34,3 +61,9 @@ def loadMap(map_name):
     #)
     '''
     return G
+
+if __name__ == "__main__":
+    map_name = 'newgraph_conso.osm'
+    # load the graph from map file
+    G = loadMap(map_name)
+    ox.plot.plot_graph(G, node_size=1)

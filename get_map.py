@@ -3,6 +3,7 @@ import osmnx as ox
 import math
 import numpy as np
 from extract import getDir
+from load_map import removeNodes
 
 lon, lat, lon_dist, lat_dist = 106.70199935, 10.782499699999999, 0.16599475000000297, 0.10649849999999983
 # lon_dist, lat_dist = (18458, 11842) m
@@ -45,8 +46,12 @@ def getMap(m_dist_from_center=2000, intersection=0.3, max_lon=106.8679941, min_l
 #ox.io.save_graphml(G, filepath=getDir('./') + 'newgraph.osm')
 #print('G: ', G)
 
-#G_1 = ox.io.load_graphml(filepath=getDir('./newgraph_conso.osm'))
-#ox.plot.plot_graph(G_1, node_size=1)
+G_1 = ox.io.load_graphml(filepath=getDir('./newgraph_conso.osm'))
+print('G_1: ', G_1)
+# simplify the network
+G_3 = removeNodes(G_1)
+print('G_3: ', G_3)
+ox.plot.plot_graph(G_3, node_size=1)
 '''
 G_1 = ox.io.load_graphml(filepath=getDir('./newgraph.osm'))
 print('G_1: ', G_1)

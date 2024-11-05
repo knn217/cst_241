@@ -32,10 +32,7 @@ def edgeConverter(edges_format_1):
     edges_format_2 = [{'start': i[0], 'dest': i[1], 'travel_time': edges_format_1[i]['length']} for i in edges_format_1]
     return edges_format_2
 
-def runAlgorithm(algorithm, map_name):
-    # load the graph from map file
-    graph = loadMap(map_name)
-    
+def runAlgorithm(algorithm, graph):
     # pick start and end point randomly (seeded)
     random.seed(10)
     start, end = random.sample(sorted(graph._node), 2)
@@ -63,4 +60,10 @@ def runAlgorithm(algorithm, map_name):
     return
 
 if __name__ == "__main__":
-    runAlgorithm(bruteForce, 'newgraph_conso.osm')
+    map_name = 'newgraph_conso.osm'
+    # load the graph from map file
+    graph = loadMap(map_name)
+    
+    runAlgorithm(bruteForce, graph)
+    
+    
