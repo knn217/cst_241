@@ -23,6 +23,17 @@ def removeNodes(graph):
             graph.add_edge(*graph.neighbors(node))
             # And delete the node
             graph.remove_node(node)
+    
+    #single_nodes = []
+    #for node in graph.nodes(data=True):
+    #    if 'street_count' in node[1]:
+    #        #print(node[1])
+    #        if node[1]['street_count'] == 0:
+    #            single_nodes.append(node[0])
+    #print(single_nodes)
+    #for node in single_nodes:
+    #    graph.remove_node(node)
+    
     return graph
 
 def loadMap(map_name):

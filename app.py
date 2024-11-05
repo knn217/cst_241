@@ -11,7 +11,7 @@ class ImageCanvasApp:
         self.root = root
         self.root.title("Image Canvas")
         
-        self.dim = {'width': 795, 'height': 366}
+        self.dim = {'width': 1344, 'height': 686}
         self.canvas = tk.Canvas(root, width=self.dim['width'], height=self.dim['height'], bg='white')
         self.canvas.pack()
 
@@ -29,10 +29,11 @@ class ImageCanvasApp:
             'range_lat': 10.81864 - 10.78786
             }
         self.ratio = {'x': self.dim['width']/self.bbox['range_lon'], 'y': self.dim['height']/self.bbox['range_lat']}
+        self.dist = 3
 
         # Load an image
-        self.load_image_button = tk.Button(root, text="Switch View", command=self.load_image)
-        self.load_image(getDir('./map.png'))
+        self.load_image(getDir('map.png'))
+        self.load_image_button = tk.Button(root, text="Reset", command=self.draw_map)
         self.load_image_button.pack()
         
         # Create an entry widget for user input
@@ -43,7 +44,7 @@ class ImageCanvasApp:
         self.print_button = tk.Button(self.root, text="Print Text", command=self.save_as)
         self.print_button.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the button next to the entry
 
-        self.canvas.bind("<Button-1>", self.get_click_position)
+        self.canvas.bind("<Button-1>", self.on_mouse_click)
         self.draw_map()
 
     def load_image(self, img_file):
@@ -56,35 +57,56 @@ class ImageCanvasApp:
         self.image_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
         return
     
-    def convertCoord2Pixl(self, lon, lat):
+    def convert_coord_2_pixl(self, lon, lat):
         x = (lon - self.bbox['min_lon']) * self.ratio['x']
         y = (lat - self.bbox['min_lat']) * self.ratio['y']
         return x, y
     
-    def convertPixl2Coord(self, x, y):
+    def convert_pixl_2_Coord(self, x, y):
         lon = x / self.ratio['x'] + self.bbox['min_lon']
         lat = y / self.ratio['y'] + self.bbox['min_lat']
         return lon, lat
     
     def draw_map(self):
-        print(len(self.graph._node))
-        print(len(self.graph.edges))
+        #print(len(self.graph._node))
+        #print(len(self.graph.edges))
+        #self.canvas.create_rectangle(357, 171, 357, 171, outline='red')
         for node in self.graph.nodes(data=True):
-            #print(node[1])
-            #x, y = self.convertCoord2Pixl(node)
-            self.canvas.create_rectangle(50, 0, 100, 50, outline='red')
+            if 'lon' in node[1]:
+                #print(node[1]['lon'])
+                x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
+                #x, y = int(x), int(y)
+                #print(x, y)
+                self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='red')
+            #else:
+            #    #print(node[1])
+            #    pass
+        #for edge in self.graph.edges(data=True):
+        #    print(edge)
         return
     
-    def get_click_position(self, event):
+    def on_mouse_click(self, event):
         x, y = event.x, event.y
-        lon, lat = self.convertPixl2Coord(x, y)
-        print(f"Clicked at: ({x}, {y}) => ({lon}, {lat})")
-        return
+        lon, lat = self.convert_pixl_2_Coord(x, y)
+        node = self.mark_closest_point(lon, lat)
+        print(f"Clicked at: ({x}, {y}) => ({lon}, {lat}) => node: {node}")
+        return node
         
     def save_as(self):
         file_name = self.entry.get()  # Get text from the entry widget
         print(file_name)  # Print the text to the terminal
         return
+    
+    def mark_closest_point(self, lon, lat):
+        dist_nodes = []
+        for node in self.graph.nodes(data=True):
+            if 'lon' in node[1]:
+                if abs(node[1]['lon'] - lon) < self.dist/10000 and abs(node[1]['lat'] - lat) < self.dist/10000:
+                    x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
+                    self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='blue')
+                    #dist_nodes.append(node)
+                    return node        
+        return None
 
 
 if __name__ == "__main__":
