@@ -30,6 +30,8 @@ class ImageCanvasApp:
             }
         self.ratio = {'x': self.dim['width']/self.bbox['range_lon'], 'y': self.dim['height']/self.bbox['range_lat']}
         self.dist = 3
+        self.start_node = None
+        self.end_node = None
 
         # Load an image
         self.load_image(getDir('map.png'))
@@ -44,7 +46,9 @@ class ImageCanvasApp:
         self.print_button = tk.Button(self.root, text="Print Text", command=self.save_as)
         self.print_button.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the button next to the entry
 
-        self.canvas.bind("<Button-1>", self.on_mouse_click)
+        self.canvas.bind("<Button-1>", self.on_mouse_lclick)
+        self.canvas.bind("<Button-2>", self.on_mouse_rclick)
+        self.canvas.bind("<Button-3>", self.on_mouse_rclick)
         self.draw_map()
 
     def load_image(self, img_file):
@@ -85,25 +89,32 @@ class ImageCanvasApp:
         #    print(edge)
         return
     
-    def on_mouse_click(self, event):
+    def on_mouse_lclick(self, event, color='blue'):
         x, y = event.x, event.y
         lon, lat = self.convert_pixl_2_Coord(x, y)
-        node = self.mark_closest_point(lon, lat)
-        print(f"Clicked at: ({x}, {y}) => ({lon}, {lat}) => node: {node}")
-        return node
+        self.start_node = self.mark_closest_point(lon, lat, color=color)
+        print(f"Clicked at: ({x}, {y}) => ({lon}, {lat}) => node: {self.start_node}")
+        return self.start_node
+    
+    def on_mouse_rclick(self, event, color='green'):
+        x, y = event.x, event.y
+        lon, lat = self.convert_pixl_2_Coord(x, y)
+        self.end_node = self.mark_closest_point(lon, lat, color=color)
+        print(f"Clicked at: ({x}, {y}) => ({lon}, {lat}) => node: {self.end_node}")
+        return self.end_node
         
     def save_as(self):
         file_name = self.entry.get()  # Get text from the entry widget
         print(file_name)  # Print the text to the terminal
         return
     
-    def mark_closest_point(self, lon, lat):
+    def mark_closest_point(self, lon, lat, color='red'):
         dist_nodes = []
         for node in self.graph.nodes(data=True):
             if 'lon' in node[1]:
                 if abs(node[1]['lon'] - lon) < self.dist/10000 and abs(node[1]['lat'] - lat) < self.dist/10000:
                     x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
-                    self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='blue')
+                    self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline=color)
                     #dist_nodes.append(node)
                     return node        
         return None
