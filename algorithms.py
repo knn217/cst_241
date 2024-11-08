@@ -181,6 +181,7 @@ def BFS_buildLevelMap(graph, start_id, end_id):
                 #queue.append(dinics_node(next_node, level=current_node['level']+1))
                 new_path = path + [next_id]
                 paths.append(new_path)
+                print(f'paths: {paths}')
                 if next_id == end_id:
                     #print(f'found: {new_path}')
                     true_paths.append(new_path)
@@ -251,11 +252,13 @@ def DFS_sendFlow(graph, current_id, end_id, flow_in):
 def dinics(graph, start_id, end_id):
     """Find the maximum flow from source to sink"""
     max_flow = 0
+    paths_list = []
     true_paths_list = []
     while True:
         # 1. Build the level graph using BFS
         reached_sink, paths, true_paths, level_graph = BFS_buildLevelMap(graph, start_id, end_id)
         #print(f'old true paths list: {true_paths_list}, {true_paths}')
+        paths_list += paths
         true_paths_list += true_paths
         #print(f'new true paths list: {true_paths_list}')
         if not reached_sink:
@@ -265,12 +268,30 @@ def dinics(graph, start_id, end_id):
         if flow == 0:
             break
         max_flow += flow
-    return max_flow, paths, true_paths_list, level_graph
+    return max_flow, paths_list, true_paths_list, level_graph
 
+import networkx as nx
+
+def create_test_graph():
+    G = nx.DiGraph()
+    edges = [
+        (1, 2, {'flow': 0, 'capacity': 10}),
+        (1, 3, {'flow': 0, 'capacity': 10}),
+        (2, 5, {'flow': 0, 'capacity': 4}),
+        (2, 3, {'flow': 0, 'capacity': 2}),
+        (3, 4, {'flow': 0, 'capacity': 9}),
+        (2, 4, {'flow': 0, 'capacity': 8}),
+        (4, 5, {'flow': 0, 'capacity': 6}),
+        (5, 6, {'flow': 0, 'capacity': 10}),
+        (4, 6, {'flow': 0, 'capacity': 10})
+    ]
+    G.add_edges_from(edges)
+    return G
 
 if __name__ == "__main__":
     #G = loadMap('minigraph.osm')
-    G = loadMap('newgraph_conso.osm')
+    #G = loadMap('newgraph_conso.osm')
+    G = create_test_graph()
     print(G)
     #for node in G.nodes:
     #    print(f'node: {G.nodes[node]}')
@@ -278,18 +299,14 @@ if __name__ == "__main__":
     #    print(f'edge i: {G.in_edges(node)}')
     #    print(f'edge o: {G.out_edges(node)}')
     
-    # 11393762468, 1276696883
-    # 11393762468, 11393762467
-    #print(G.nodes[533])
-    #print(f'edge: {G.out_edges(352, data=True)}') # 1683
-    
-    
-    #BFS_buildLevelMap(G, 11393762468, 1276696883, level_graph)    
-    max_flow, paths, true_paths_list, level_graph = dinics(G, 533, 352)
+    #source, sink = 533, 352
+    source, sink = 1, 6
+
+    max_flow, paths_list, true_paths_list, level_graph = dinics(G, source, sink)
     #print(f'true paths list: {true_paths_list}')
-    for path in true_paths_list:
+    for path in paths_list:
         print(f'paths found: {path}')
         
     print(max_flow)
-        
+
     #print(level_graph)
