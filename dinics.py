@@ -1,4 +1,5 @@
 from collections import deque
+from networkx.algorithms.flow import dinitz
 
 # BFS from given source s
 def bfs(adj, s):

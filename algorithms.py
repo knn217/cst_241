@@ -1,4 +1,4 @@
-
+from load_map import loadMap
 
 def getDestList(paths, start, total_travel_time = 0):
     destinations = []
@@ -110,16 +110,88 @@ def bellman_ford(paths, start, dest):
         'total_time': distances[dest] if distances[dest] != float('inf') else None
     }
     
-def dinics_node(node, flow=0, capacity=0, level=-1, reverse=0):
+def dinics_node(node, level=-1):
     # Add dinics attributes to a node
-    node.get('flow', flow)
-    node.get('capacity', capacity)
-    node.get('level', level)
-    node.get('reverse', reverse)
-    print(node)
+    print(f'old: {node}')
+    node['level'] = level
+    #node.get('level', level)
+    print(f'new: {node}')
+    #print(node)
     return node
 
-def BFS_buildLevelMap(graph, start_node, end_node, level_graph):
+def dinics_edge(*edge, flow=0, capacity=0, level=-1):
+    # Add dinics attributes to a edge
+    edge.get('flow', flow)
+    edge.get('capacity', capacity)
+    dinics_node(edge[1])
+    #print(edge)
+    return edge
+
+def BFS_buildLevelMap(graph, start_id, end_id, level_graph):
+    '''
+    graph: the graph
+    start_id: id of start node
+    end_id: id of end node
+    level_graph: the constructed level graph, return by reference
+    '''
+    start_node = graph.nodes[start_id]
+    end_node = graph.nodes[end_id]
+    # Level of source vertex = 0
+    dinics_node(start_node, level=0)
+    # save nodes in level graph to reset later
+    level_graph['nodes'].append(start_node)
+    
+    # Create a queue, enqueue source vertex and mark source vertex as visited
+    queue = []
+    queue.append(start_id)
+    paths = []
+    paths.append([start_node])
+    print(paths)
+    idx = 0
+    while queue:
+        current_id = queue.pop(0) # pop the 1st id
+        print(f'current id: {current_id}')
+        current_node = graph.nodes[current_id]
+        path = paths[idx]
+        #print(idx, path)
+        # get current_node's edges
+        for edge in graph.edges(current_id, data=True):
+            print(f'edge: {edge}')
+            next_id = edge[1]
+            next_node = graph.nodes[next_id]
+            print(f'next node: {edge[1]}, {next_node}')
+            if 'level' not in next_node and 'flow' not in edge[2]: # edge[2] is edge data
+                # Level of current vertex is level of parent + 1
+                queue.append(next_id)
+                next_node = dinics_node(next_node, level=current_node['level']+1)
+                #queue.append(dinics_node(next_node, level=current_node['level']+1))
+                paths.append(path + [edge])
+        print(idx)
+        idx+=1
+        #if idx == 30:
+        #    break
+    #print(paths)
+    print(idx)
+    '''
+    # If we can not reach to the sink we return False else True
+        for i in range(len(self.adj[u])):
+            e = self.adj[u][i]
+            if self.level[e.v] < 0 and e.flow < e.C:
+
+                # Level of current vertex is
+                # level of parent + 1
+                self.level[e.v] = self.level[u]+1
+                q.append(e.v)
+                paths.append(path + [e.v])
+        idx+=1
+    print(paths)
+    # If we can not reach to the sink we
+    # return False else True
+    return False if self.level[t] < 0 else True
+    '''
+    return False if ('level' not in end_node or end_node['level'] == -1) else True
+    
+def BFS_buildLevelMap_old(graph, start_node, end_node, level_graph):
     # Level of source vertex = 0
     dinics_node(start_node, level=0)
     # save nodes in level graph to reset later
@@ -157,6 +229,7 @@ def BFS_buildLevelMap(graph, start_node, end_node, level_graph):
 #           from i
 # u : Current vertex
 # t : Sink
+'''
 def DFS_sendFlow(graph, current_node, flow, sink, start):
     # Sink reached
     if current_node == sink:
@@ -174,8 +247,26 @@ def DFS_sendFlow(graph, current_node, flow, sink, start):
                 # subtract flow from reverse edge of current edge
                 self.adj[e.v][e.rev].flow -= temp_flow
                 return temp_flow
-        
+'''        
     
 def dinics():
     
     return
+
+if __name__ == "__main__":
+    G = loadMap('minigraph.osm')
+    print(G)
+    #for node in G.nodes:
+    #    print(f'node: {G.nodes[node]}')
+    #    print(f'edge: {G.edges(node, data=True)}')
+    #    print(f'edge i: {G.in_edges(node)}')
+    #    print(f'edge o: {G.out_edges(node)}')
+    
+    # 11393762468, 1276696883
+    # 11393762468, 11393762467
+    #print(G.nodes[533])
+    #print(f'edge: {G.out_edges(352, data=True)}') # 1683
+    
+    level_graph = {'nodes': [], 'edges': []}
+    BFS_buildLevelMap(G, 11393762468, 1276696883, level_graph)    
+    
