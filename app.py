@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 from extract import getDir
 from load_map import loadMap
 from collections import deque
-from algorithms import dinics
+from algorithms import dinics, reset_map
 
 ratio = 111196.2878
 
@@ -18,10 +18,13 @@ class ImageCanvasApp:
         self.canvas.pack()
 
         self.image = None
-        self.image_id = None
+        self.image_layer = None
+        self.node_layer = []
+        self.edge_layer = []
         
         self.map_name = 'newgraph_conso.osm'
         self.graph = loadMap(self.map_name)
+        print(self.graph)
         self.bbox = {
             'max_lon': 106.71535,
             'min_lon': 106.64738,
@@ -37,15 +40,15 @@ class ImageCanvasApp:
 
         # Load an image
         self.load_image(getDir('map.png'))
-        self.load_image_button = tk.Button(root, text="print paths", command=self.print_flow_paths)
-        self.load_image_button.pack()
+        self.load_image_button = tk.Button(root, text="Print flow/paths", command=self.print_flow_paths)
+        self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
         
         # Create an entry widget for user input
-        self.entry = tk.Entry(self.root, width=40)
-        self.entry.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the entry on the left
+        #self.entry = tk.Entry(self.root, width=40)
+        #self.entry.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the entry on the left
 
         # Create a button that will call the print_text function when clicked
-        self.print_button = tk.Button(self.root, text="Print Text", command=self.save_as)
+        self.print_button = tk.Button(self.root, text="Toggle nodes", command=self.toggle_node)
         self.print_button.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the button next to the entry
 
         self.canvas.bind("<Button-1>", self.on_mouse_lclick)
@@ -60,10 +63,10 @@ class ImageCanvasApp:
         self.image = Image.open(img_file)
         #self.image.thumbnail((800, 600))  # Resize image to fit the canvas
         self.tk_image = ImageTk.PhotoImage(self.image)
-        if self.image_id is not None:
-            self.canvas.delete(self.image_id)  # Remove previous image if any
+        if self.image_layer is not None:
+            self.canvas.delete(self.image_layer)  # Remove previous image if any
         
-        self.image_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+        self.image_layer = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
         return
     
     def convert_coord_2_pixl(self, lon, lat):
@@ -83,21 +86,30 @@ class ImageCanvasApp:
                 x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
                 #x, y = int(x), int(y)
                 #print(x, y)
-                self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='red')
+                rect = self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='red')
+                self.node_layer.append([node[0], rect])
         return
     
     def on_mouse_lclick(self, event, color='blue'):
         x, y = event.x, event.y
         lon, lat = self.convert_pixl_2_Coord(x, y)
-        self.start_node = self.mark_closest_point(lon, lat, color=color)
-        print(f"Left clicked at: <<{self.start_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.start_node}")
+        if self.start_node:
+            self.canvas.itemconfig(self.start_node[1], outline="red")
+        self.start_node = self.find_closest_point(lon, lat, color=color)
+        if self.start_node:
+            self.canvas.itemconfig(self.start_node[1], outline="blue")
+            print(f"Left clicked at: <<{self.start_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.start_node}")
         return self.start_node
     
     def on_mouse_rclick(self, event, color='green'):
         x, y = event.x, event.y
         lon, lat = self.convert_pixl_2_Coord(x, y)
-        self.end_node = self.mark_closest_point(lon, lat, color=color)
-        print(f"Right clicked at: <<{self.end_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.end_node}")
+        if self.end_node:
+            self.canvas.itemconfig(self.end_node[1], outline="red")
+        self.end_node = self.find_closest_point(lon, lat, color=color)
+        if self.end_node:
+            self.canvas.itemconfig(self.end_node[1], outline="green")
+            print(f"Right clicked at: <<{self.end_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.end_node}")
         return self.end_node
         
     def save_as(self):
@@ -105,28 +117,53 @@ class ImageCanvasApp:
         print(file_name)  # Print the text to the terminal
         return
     
-    def mark_node(self, node, color='red'):
-        x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
-        self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline=color)
-        return node
-    
-    def mark_closest_point(self, lon, lat, color='red'):
-        dist_nodes = []
-        for node in self.graph.nodes(data=True):
-            if 'lon' in node[1]:
-                if abs(node[1]['lon'] - lon) < self.dist/10000 and abs(node[1]['lat'] - lat) < self.dist/10000:
-                    _node = self.mark_node(node, color=color)
-                    #dist_nodes.append(node)
-                    return _node        
+    def find_closest_point(self, lon, lat, color='red'):
+        for node_rect in self.node_layer:
+            node_id = node_rect[0]
+            node = self.graph.nodes[node_id]
+            if 'lon' not in node:
+                continue
+            if abs(node['lon'] - lon) < self.dist/10000 and abs(node['lat'] - lat) < self.dist/10000:
+                return node_rect
         return None
     
-    def print_flow_paths(self, algo=dinics):
-        max_flow, paths, true_paths_list, level_graph = algo(self.graph, self.start_node[0], self.end_node[0])
-        for path in true_paths_list:
+    def print_flow_paths(self, algo=dinics, reset=reset_map):
+        if not self.start_node:
+            print('No start node picked')
+            return
+        if not self.end_node:
+            print('No end node picked')
+            return
+        
+        max_flow, paths_list, true_paths_list, true_level_graph = algo(self.graph, self.start_node[0], self.end_node[0])
+        for path in paths_list:
+            # print path
             print(f'paths found: {path}')
+            
+        for path in true_paths_list:
+            # print path
+            print(f'true paths found: {path}')
+
+        print(len(true_level_graph['nodes']), len(true_level_graph['edges']))
+        #for node in true_level_graph:
+        #    # draw nodes
+        #    for node_rect in self.node_layer:
+        #        if 
+        
         print(f'max flow: {max_flow}')
+        
+        # reset_map
+        reset(self.graph, true_level_graph)
         return
     
+    def toggle_node(self):
+        # Toggle the visibility of the drawing layer
+        if self.node_layer:
+            for node in self.node_layer:
+                current_state = self.canvas.itemcget(node[1], "state")
+                new_state = "hidden" if current_state == "normal" else "normal"
+                self.canvas.itemconfigure(node[1], state=new_state)
+
     def test(self):
         #for node in self.graph.nodes:
         #    print(f'node: {self.graph.nodes[node]}')

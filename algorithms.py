@@ -291,9 +291,6 @@ def dinics(graph, start_id, end_id):
         if flow == 0:
             break
         max_flow += flow
-    # reset the map for later runs
-    reset_map(graph, true_level_graph)
-    
     return max_flow, paths_list, true_paths_list, true_level_graph
 
 import networkx as nx
@@ -333,6 +330,9 @@ if __name__ == "__main__":
     for path in paths_list:
         print(f'paths found: {path}')
     print(f'level graph: {true_level_graph}')
+    # reset the map for later runs
+    reset_map(G, true_level_graph)
+    
     print('===============================')
     max_flow, paths_list, true_paths_list, true_level_graph = dinics(G, source, sink)
     #print(f'true paths list: {true_paths_list}')
