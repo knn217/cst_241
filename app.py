@@ -5,6 +5,7 @@ from extract import getDir
 from load_map import loadMap
 from collections import deque
 from algorithms import fordFulkerson, dinics, reset_map, estimate_max_capacity
+from edmonds_karp import find_maximum_flow_using_edmonds_karp
 
 ratio = 111196.2878
 
@@ -133,7 +134,7 @@ class ImageCanvasApp:
                 return node_rect
         return None
     
-    def print_flow_paths(self, algo=dinics, reset=reset_map):
+    def print_flow_paths(self, algo=find_maximum_flow_using_edmonds_karp, reset=reset_map):
         if not self.start_node:
             print('No start node picked')
             return

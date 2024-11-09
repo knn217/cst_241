@@ -1,5 +1,6 @@
 from load_map import loadMap
 import numpy as np
+from edmonds_karp import find_maximum_flow_using_edmonds_karp
 
 def getDestList(paths, start, total_travel_time = 0):
     destinations = []
@@ -459,12 +460,12 @@ if __name__ == "__main__":
     '''
 
     # create capacity for edges
-    for edge in G.edges(data=True):
-        #print(f'old edge: {edge}')
-        edge[2]['capacity'] = estimate_max_capacity(edge[2])
-        #print(f'new edge: {edge}')
+    # for edge in G.edges(data=True):
+    #     #print(f'old edge: {edge}')
+    #     edge[2]['capacity'] = estimate_max_capacity(edge[2])
+    #     #print(f'new edge: {edge}')
         
-    max_flow_by_ff, list_paths, list_travel_time, place_holder = fordFulkerson(G, source, sink)
+    max_flow_by_ff, list_paths, list_travel_time, place_holder = find_maximum_flow_using_edmonds_karp(G, source, sink)
     print(max_flow_by_ff)
     print(list_paths)
     print(list_travel_time)
