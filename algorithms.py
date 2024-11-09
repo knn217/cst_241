@@ -146,7 +146,7 @@ def condition(current_node, next_node, end_node):
     
     return cond_1# and cond_2 
 
-def BFS_buildLevelMap(graph, start_id, end_id, shortest_dist=False):
+def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=False):
     '''
     graph: the graph
     start_id: id of start node
@@ -158,14 +158,20 @@ def BFS_buildLevelMap(graph, start_id, end_id, shortest_dist=False):
     # Level of source vertex = 0
     dinics_node(start_node, level=0)
     # save nodes in level graph to reset later
-    level_graph={'nodes': set(), 'edges': set()}
+    if level_graph:
+        # reset node levels
+        for node_id in level_graph['nodes']:
+            node = graph.nodes[node_id]
+            node['level'] = -1
+        pass
+    else:    
+        level_graph={'nodes': set(), 'edges': set()}
     level_graph['nodes'].add(start_id)
     
     # Create a queue, enqueue source vertex and mark source vertex as visited
     queue = []
     queue.append(start_id)
     
-    idx = 0
     while queue:
         current_id = queue.pop(0) # pop the 1st id
         #print(f'current id: {current_id}')
@@ -199,8 +205,6 @@ def BFS_buildLevelMap(graph, start_id, end_id, shortest_dist=False):
                 # Level of current vertex is level of parent + 1
                 dinics_node(next_node, level=current_node['level']+1)
                 dinics_edge(edge_data)
-        #print(idx)
-        idx+=1
     reached_sink = False if ('level' not in end_node or end_node['level'] == -1) else True
     return reached_sink, level_graph
 
@@ -219,8 +223,9 @@ def BFS_buildLevelMap(graph, start_id, end_id, shortest_dist=False):
 def DFS_sendFlow(graph, current_id, end_id, flow_in, path=[], paths=[]):
     # Sink reached
     if current_id == end_id:
-        print('reached end')
+        path.append(flow_in)
         paths.append(path.copy())
+        print(f'reached end: {path}')
         return flow_in
     total_flow = 0
 
@@ -285,10 +290,11 @@ def dinics(graph, start_id, end_id, shortest_dist=False):
     """Find the maximum flow from source to sink"""
     max_flow = 0
     paths = []
+    level_graph = None
     true_level_graph = {'nodes': set(), 'edges': set()}
     while True:
         # 1. Build the level graph using BFS
-        reached_sink, level_graph = BFS_buildLevelMap(graph, start_id, end_id, shortest_dist=shortest_dist)
+        reached_sink, level_graph = BFS_buildLevelMap(graph, start_id, end_id, level_graph=level_graph, shortest_dist=shortest_dist)
         #print(f'old true paths list: {true_paths_list}, {true_paths}')
         true_level_graph['nodes'] |= level_graph['nodes']
         true_level_graph['edges'] |= level_graph['edges']
