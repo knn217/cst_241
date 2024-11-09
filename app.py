@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 from extract import getDir
 from load_map import loadMap
 from collections import deque
-from algorithms import dinics, reset_map
+from algorithms import fordFulkerson, dinics, reset_map, estimate_max_capacity
 
 ratio = 111196.2878
 
@@ -24,6 +24,12 @@ class ImageCanvasApp:
         
         self.map_name = 'newgraph_conso.osm'
         self.graph = loadMap(self.map_name)
+        # create capacity for edges
+        for edge in self.graph.edges(data=True):
+            #print(f'old edge: {edge}')
+            edge[2]['capacity'] = estimate_max_capacity(edge[2])
+            #print(f'new edge: {edge}')
+            
         print(self.graph)
         self.bbox = {
             'max_lon': 106.71535,
@@ -143,8 +149,11 @@ class ImageCanvasApp:
         for path in true_paths_list:
             # print path
             print(f'true paths found: {path}')
-
-        print(len(true_level_graph['nodes']), len(true_level_graph['edges']))
+        
+        print(f'number of paths: {len(paths_list)}')
+        print(f'number of true paths: {len(true_paths_list)}')
+        if true_level_graph:
+            print(len(true_level_graph['nodes']), len(true_level_graph['edges']))
         #for node in true_level_graph:
         #    # draw nodes
         #    for node_rect in self.node_layer:
@@ -153,7 +162,8 @@ class ImageCanvasApp:
         print(f'max flow: {max_flow}')
         
         # reset_map
-        reset(self.graph, true_level_graph)
+        if algo == dinics:
+            reset(self.graph, true_level_graph)
         return
     
     def toggle_node(self):

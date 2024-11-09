@@ -1,4 +1,5 @@
 from load_map import loadMap
+import numpy as np
 
 def getDestList(paths, start, total_travel_time = 0):
     destinations = []
@@ -123,11 +124,26 @@ def dinics_node(node, level=-1):
 def dinics_edge(edge, flow=0, capacity=10):
     # Add dinics attributes to a edge
     edge['flow'] = flow
-    edge['capacity'] = capacity
+    if 'capacity' not in edge:
+        edge['capacity'] = capacity
     #edge.get('flow', flow)
     #edge.get('capacity', capacity)
     #print(edge)
     return edge
+
+def condition(current_node, next_node, end_node):
+    print(next_node)
+    if next_node['osmid_original'] == end_node['osmid_original']:
+        return True
+    
+    curr_end = ((current_node['x'] - end_node['x'])**2 + (current_node['y'] - end_node['y'])**2)**0.5
+    curr_next = ((current_node['x'] - next_node['x'])**2 + (current_node['y'] - next_node['y'])**2)**0.5
+    next_end = ((next_node['x'] - end_node['x'])**2 + (next_node['y'] - end_node['y'])**2)**0.5
+    
+    cond_1 = curr_end > (4/5)*(curr_next + next_end)
+    #cond_2 = curr_end < (curr_next + next_end)
+    
+    return cond_1# and cond_2 
 
 def BFS_buildLevelMap(graph, start_id, end_id):
     '''
@@ -171,6 +187,13 @@ def BFS_buildLevelMap(graph, start_id, end_id):
                 edge_data['flow'] = 0
             if 'capacity' not in edge_data:
                 edge_data['capacity'] = 10
+            
+            # condition to put node in level map
+            # condition: next node is closer to end node than current node
+            match = condition(current_node, next_node, end_node)
+            if not match:
+                print('not match')
+                continue
             if next_node['level'] < 0 and edge_data['flow'] < edge_data['capacity']:
                 # Level of current vertex is level of parent + 1
                 queue.append(next_id)
@@ -293,6 +316,75 @@ def dinics(graph, start_id, end_id):
         max_flow += flow
     return max_flow, paths_list, true_paths_list, true_level_graph
 
+#================================================================================
+def buildResidualGraph(graph):
+    residual_graph = {}
+    for edge in graph.edges(data=True):
+        #print(edge[2])
+        if 'capacity' not in edge[2]:
+            edge[2]['capacity'] = 10
+        u, v, capacity = edge[0], edge[1], edge[2]['capacity']
+
+        # Initialize forward edge
+        if u not in residual_graph:
+            residual_graph[u] = {}
+        if v not in residual_graph[u]:
+            residual_graph[u][v] = capacity
+        else:
+            residual_graph[u][v] += capacity  # Sum capacities if multiple edges
+
+        # Initialize reverse edge with 0 capacity
+        if v not in residual_graph:
+            residual_graph[v] = {}
+        if u not in residual_graph[v]:
+            residual_graph[v][u] = 0
+
+    return residual_graph
+
+def dfs(residual_graph, start, dest, visited, path):
+    if start == dest:
+        return path
+
+    visited.add(start)
+
+    for neighbor, capacity in residual_graph[start].items():
+        if neighbor not in visited and capacity > 0:  # Only consider edges with positive capacity
+            result = dfs(residual_graph, neighbor, dest, visited, path + [(start, neighbor, capacity)])
+            if result is not None:
+                return result
+    return None
+
+def fordFulkerson(paths, start, dest):
+    residual_graph = buildResidualGraph(paths)
+    max_flow = 0
+    all_routes = []
+    min_travel_times = []
+    if start not in residual_graph:
+        return 0, [], []
+    while True:
+        # Find an augmenting path using DFS
+        visited = set()
+        augmenting_path = dfs(residual_graph, start, dest, visited, [])
+
+        if augmenting_path is None:
+            break  # No more augmenting paths
+
+        # Calculate the minimum travel time (bottleneck) along the path
+        path_flow = min(edge[2] for edge in augmenting_path)
+
+        # Store the path and its minimum travel time
+        all_routes.append(augmenting_path)
+        min_travel_times.append(path_flow)
+
+        # Augment the flow along the path
+        for u, v, capacity in augmenting_path:
+            residual_graph[u][v] -= path_flow  # Reduce capacity in forward direction
+            residual_graph[v][u] += path_flow  # Increase capacity in reverse direction
+
+        max_flow += path_flow  # Increase the total max flow by the path's bottleneck capacity
+
+    return max_flow, all_routes, min_travel_times, None
+
 import networkx as nx
 
 def create_test_graph():
@@ -311,6 +403,30 @@ def create_test_graph():
     G.add_edges_from(edges)
     return G
 
+
+np.random.seed(10)
+def estimate_max_capacity(data):
+    max_capacity = 0
+    if data['highway']  == 'trunk':
+      max_capacity = 500
+    elif data['highway']  == ['trunk', 'primary'] or data['highway'] == ['tertiary', 'secondary']:
+      max_capacity = 400
+    elif data['highway'] == 'primary':
+      max_capacity = 300
+    elif data['highway'] == 'primary_link' or data['highway'] == 'secondary':
+      max_capacity = 200
+    elif data['highway'] == 'secondary_link':
+      max_capacity = 150
+    elif data['highway'] == 'tertiary':
+      max_capacity = 100
+    elif data['highway'] == 'tertiary_link' or data['highway'] == 'living_street':
+      max_capacity = 70
+    elif data['highway'] == 'residential':
+      max_capacity = 30
+    else:
+      max_capacity = 20
+    return round(max_capacity*(1+np.random.uniform(-0.1, 0.1)))
+
 if __name__ == "__main__":
     #G = loadMap('minigraph.osm')
     #G = loadMap('newgraph_conso.osm')
@@ -324,7 +440,7 @@ if __name__ == "__main__":
     
     #source, sink = 533, 352
     source, sink = 1, 6
-
+    '''
     max_flow, paths_list, true_paths_list, true_level_graph = dinics(G, source, sink)
     #print(f'true paths list: {true_paths_list}')
     for path in paths_list:
@@ -340,5 +456,16 @@ if __name__ == "__main__":
         print(f'paths found: {path}')
         
     print(max_flow)
+    '''
 
+    # create capacity for edges
+    for edge in G.edges(data=True):
+        #print(f'old edge: {edge}')
+        edge[2]['capacity'] = estimate_max_capacity(edge[2])
+        #print(f'new edge: {edge}')
+        
+    max_flow_by_ff, list_paths, list_travel_time, place_holder = fordFulkerson(G, source, sink)
+    print(max_flow_by_ff)
+    print(list_paths)
+    print(list_travel_time)
     #print(level_graph)
