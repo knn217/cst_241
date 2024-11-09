@@ -174,14 +174,17 @@ def BFS_buildLevelMap(graph, start_id, end_id):
             if next_node['level'] < 0 and edge_data['flow'] < edge_data['capacity']:
                 # Level of current vertex is level of parent + 1
                 queue.append(next_id)
+                
+                # add ids to level graph
                 level_graph['nodes'].add(next_id)
                 level_graph['edges'].add((edge[:2]))
-                next_node = dinics_node(next_node, level=current_node['level']+1)
-                next_edge = dinics_edge(edge_data)
+                
+                dinics_node(next_node, level=current_node['level']+1)
+                dinics_edge(edge_data)
                 #queue.append(dinics_node(next_node, level=current_node['level']+1))
                 new_path = path + [next_id]
                 paths.append(new_path)
-                print(f'paths: {paths}')
+                #print(f'paths: {paths}')
                 if next_id == end_id:
                     #print(f'found: {new_path}')
                     true_paths.append(new_path)
@@ -218,48 +221,68 @@ def DFS_sendFlow(graph, current_id, end_id, flow_in):
         edge_data = edge[2]
         next_id = edge[1] # get the end node of this edge
         next_node = graph.nodes[next_id]
+        residual_capacity = edge_data['capacity'] - edge_data['flow']
         
-        if (next_node['level'] == (current_node['level']+1)) and edge_data['flow'] < edge_data['capacity']:
-            # prunes dead ends by ensuring that:
-            # only explores edges where the residual capacity is positive.
-            # respects the level condition (edges are explored only if the level of the destination node is one greater than the current node's level).
-            residual_capacity = edge_data['capacity'] - edge_data['flow']
-            if residual_capacity > 0:
-                # find minimum flow from u to t
-                curr_flow_to_send = min(flow_in, residual_capacity)
-                flow_sent = DFS_sendFlow(graph, next_id, end_id, curr_flow_to_send)
-                # flow is greater than zero
-                if flow_sent and flow_sent > 0:
-                    # add flow to current edge
-                    edge_data['flow'] += flow_sent
-                    # find the reverse edge
-                    for rev_edge in graph.edges(next_id, data=True):
-                        if rev_edge[1] == current_id:
-                            rev_edge_data = rev_edge[2]
-                            # subtract flow from reverse edge of current edge
-                            if 'flow' not in rev_edge_data:
-                                rev_edge_data['flow'] = -flow_sent
-                                break
-                            rev_edge_data['flow'] -= flow_sent
-                            break
-                    flow_in -= flow_sent
-                    total_flow += flow_sent
-                    if flow_in == 0:
+        # prunes dead ends by ensuring that:
+        # 1. follow the level condition (level of the destination node = current node's level + 1).
+        # 2. only explores edges where the residual capacity is positive.
+        if (next_node['level'] == (current_node['level']+1)) and residual_capacity > 0:
+            
+            # find minimum flow from u to t
+            curr_flow_to_send = min(flow_in, residual_capacity)
+            flow_sent = DFS_sendFlow(graph, next_id, end_id, curr_flow_to_send)
+            
+            # only continue if flow is greater than zero
+            if not (flow_sent and flow_sent > 0):
+                continue
+            
+            # add flow to current edge
+            edge_data['flow'] += flow_sent
+            
+            # find the reverse edge
+            for rev_edge in graph.edges(next_id, data=True):
+                if rev_edge[1] == current_id:
+                    rev_edge_data = rev_edge[2]
+                    # subtract flow from reverse edge of current edge
+                    if 'flow' not in rev_edge_data:
+                        rev_edge_data['flow'] = -flow_sent
                         break
+                    rev_edge_data['flow'] -= flow_sent
+                    break
+            
+            flow_in -= flow_sent
+            total_flow += flow_sent
+            if flow_in == 0:
+                break
     return total_flow
 
+def reset_map(graph, true_level_graph):
+    for current_id in true_level_graph['nodes']:
+        current_node = graph.nodes[current_id]
+        current_node['level'] = -1        
+        for edge in graph.edges(current_id, data=True):
+            #print(f'edge: {edge}')
+            edge_data = edge[2]
+            next_id = edge[1] # get the end node of this edge
+            next_node = graph.nodes[next_id]
+            next_node['level'] = -1
+            edge_data['flow'] = 0
+    return
     
 def dinics(graph, start_id, end_id):
     """Find the maximum flow from source to sink"""
     max_flow = 0
     paths_list = []
     true_paths_list = []
+    true_level_graph = {'nodes': set(), 'edges': set()}
     while True:
         # 1. Build the level graph using BFS
         reached_sink, paths, true_paths, level_graph = BFS_buildLevelMap(graph, start_id, end_id)
         #print(f'old true paths list: {true_paths_list}, {true_paths}')
         paths_list += paths
         true_paths_list += true_paths
+        true_level_graph['nodes'] |= level_graph['nodes']
+        true_level_graph['edges'] |= level_graph['edges']
         #print(f'new true paths list: {true_paths_list}')
         if not reached_sink:
             break
@@ -268,7 +291,10 @@ def dinics(graph, start_id, end_id):
         if flow == 0:
             break
         max_flow += flow
-    return max_flow, paths_list, true_paths_list, level_graph
+    # reset the map for later runs
+    reset_map(graph, true_level_graph)
+    
+    return max_flow, paths_list, true_paths_list, true_level_graph
 
 import networkx as nx
 
@@ -302,7 +328,13 @@ if __name__ == "__main__":
     #source, sink = 533, 352
     source, sink = 1, 6
 
-    max_flow, paths_list, true_paths_list, level_graph = dinics(G, source, sink)
+    max_flow, paths_list, true_paths_list, true_level_graph = dinics(G, source, sink)
+    #print(f'true paths list: {true_paths_list}')
+    for path in paths_list:
+        print(f'paths found: {path}')
+    print(f'level graph: {true_level_graph}')
+    print('===============================')
+    max_flow, paths_list, true_paths_list, true_level_graph = dinics(G, source, sink)
     #print(f'true paths list: {true_paths_list}')
     for path in paths_list:
         print(f'paths found: {path}')
