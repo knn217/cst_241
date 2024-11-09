@@ -90,7 +90,7 @@ def find_maximum_flow_using_edmonds_karp(graph, source, sink):
         
         parent = {node: None for node in graph.nodes()}
 
-    return max_flow, paths, [], []
+    return max_flow, paths, []
 
 
 def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
