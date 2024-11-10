@@ -16,7 +16,7 @@ class ImageCanvasApp:
         self.root = root
         self.root.title("Image Canvas")
         
-        self.dim = {'width': 1344, 'height': 686}
+        self.dim = {'width': 1065, 'height': 728}
         self.canvas = tk.Canvas(root, width=self.dim['width'], height=self.dim['height'], bg='white')
         # pack canvas after all buttons
         self.canvas.pack()
@@ -26,7 +26,7 @@ class ImageCanvasApp:
         self.node_layer = []
         self.edge_layer = []
         
-        self.map_name = 'newgraph_conso.osm'
+        self.map_name = 'map_drive.osm'
         self.graph = loadMap(self.map_name)
         # create capacity for edges
         for edge in self.graph.edges(data=True):
@@ -36,12 +36,12 @@ class ImageCanvasApp:
             
         print(self.graph)
         self.bbox = {
-            'max_lon': 106.71535,
-            'min_lon': 106.64738,
-            'max_lat': 10.81864,
-            'min_lat': 10.78786,
-            'range_lon': 106.71535 - 106.64738,
-            'range_lat': 10.81864 - 10.78786
+            'max_lon': 106.71553,
+            'min_lon': 106.65416,
+            'max_lat': 10.81754,
+            'min_lat': 10.76729,
+            'range_lon': 106.71553 - 106.65416,
+            'range_lat': 10.81754 - 10.76729
             }
         self.ratio = {'x': self.dim['width']/self.bbox['range_lon'], 'y': self.dim['height']/self.bbox['range_lat']}
         self.dist = 3
@@ -49,7 +49,7 @@ class ImageCanvasApp:
         self.end_node = None
 
         # Load an image
-        self.load_image(getDir('map.png'))
+        self.load_image(getDir('map_new.png'))
         
         # Create an entry widget for user input
         #self.entry = tk.Entry(self.root, width=40)
@@ -60,11 +60,11 @@ class ImageCanvasApp:
         self.print_button.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the button next to the entry
         
         # ford fulkerson
-        self.load_image_button = tk.Button(root, text="ford ful", command=self.dinics_flow_paths)
+        self.load_image_button = tk.Button(root, text="ford ful", command=self.ff_flow_paths)
         self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
 
         # edmonds karp
-        self.load_image_button = tk.Button(root, text="ed karp", command=self.dinics_flow_paths)
+        self.load_image_button = tk.Button(root, text="ed karp", command=self.ek_flow_paths)
         self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
 
         # dinics
@@ -101,9 +101,9 @@ class ImageCanvasApp:
     
     def draw_map(self):
         for node in self.graph.nodes(data=True):
-            if 'lon' in node[1]:
+            if 'x' in node[1]:
                 #print(node[1]['lon'])
-                x, y = self.convert_coord_2_pixl(node[1]['lon'], node[1]['lat'])
+                x, y = self.convert_coord_2_pixl(node[1]['x'], node[1]['y'])
                 #x, y = int(x), int(y)
                 #print(x, y)
                 rect = self.canvas.create_rectangle(x-self.dist, y-self.dist, x+self.dist, y+self.dist, outline='red')
@@ -141,9 +141,9 @@ class ImageCanvasApp:
         for node_rect in self.node_layer:
             node_id = node_rect[0]
             node = self.graph.nodes[node_id]
-            if 'lon' not in node:
+            if 'x' not in node:
                 continue
-            if abs(node['lon'] - lon) < self.dist/10000 and abs(node['lat'] - lat) < self.dist/10000:
+            if abs(node['x'] - lon) < self.dist/10000 and abs(node['y'] - lat) < self.dist/10000:
                 return node_rect
         return None
     
@@ -187,11 +187,11 @@ class ImageCanvasApp:
             print('No end node picked')
             return
         
-        max_flow, paths, true_level_graph = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist='cond_1')
-        for path in paths:
-            print(path)
+        max_flow, paths, true_level_graph = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist=None)
+        #for path in paths:
+        #    print(path)
         print(len(paths))
-        print(true_level_graph)
+        #print(true_level_graph)
         print(max_flow)
         reset_map(self.graph, true_level_graph)
         return
