@@ -1,7 +1,7 @@
+from collections import deque
+
 def cond_1(current_node, next_node, end_node):
     print(next_node)
-    if next_node['osmid_original'] == end_node['osmid_original']:
-        return True
     
     curr_end = ((current_node['x'] - end_node['x'])**2 + (current_node['y'] - end_node['y'])**2)**0.5
     curr_next = ((current_node['x'] - next_node['x'])**2 + (current_node['y'] - next_node['y'])**2)**0.5
@@ -12,6 +12,25 @@ def cond_1(current_node, next_node, end_node):
     
     return cond_1# and cond_2 
 
+def get_residual_graph(graph):
+        residual = {}
+        for u, v, data in graph.edges(data=True):
+            if u not in residual:
+                residual[u] = {}
+            if v not in residual:
+                residual[v] = {}
+            
+            # Add forward edge
+            if v not in residual[u]:
+                residual[u][v] = 0
+            residual[u][v] += data.get('capacity', 0)
+            
+            # Add reverse edge if it doesn't exist
+            if u not in residual[v]:
+                residual[v][u] = 0
+                
+        return residual
+
 def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=None):
     '''
     graph: the graph
@@ -19,14 +38,12 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=N
     end_id: id of end node
     level_graph: the constructed level graph, return by reference
     '''
-    start_node = graph.nodes[start_id]
-    end_node = graph.nodes[end_id]
+    start_node, end_node = graph.nodes[start_id], graph.nodes[end_id]
     # save nodes in level graph to reset later
     if level_graph:
         # reset node levels
         for node_id in level_graph:
-            node = graph.nodes[node_id]
-            node['level'] = -1
+            graph.nodes[node_id]['level'] = -1
         pass
     else:    
         level_graph=set()
@@ -35,28 +52,26 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=N
     start_node['level'] = 0
     
     # Create a queue, enqueue source vertex and mark source vertex as visited
-    queue = []
-    queue.append(start_id)
+    queue = deque([start_id])
     
     while queue:
-        current_id = queue.pop(0) # pop the 1st id
+        current_id = queue.popleft() # pop the 1st id
         #print(f'current id: {current_id}')
         current_node = graph.nodes[current_id]
         # get current_node's edges
         #print(type(graph.edges(current_id, data=True)))
         for edge in graph.edges(current_id, data=True):
             #print(f'edge: {edge}')
-            edge_data = edge[2]
-            next_id = edge[1] # get the end node of this edge
+            curr_id, next_id, edge_data = edge
             next_node = graph.nodes[next_id]
             #print(f'next node: {next_id}, {next_node}')
             
             # condition to put node in level map
             # condition: next node is closer to end node than current node
-            if shortest_dist == 'cond_1':
+            if shortest_dist == 'cond_1' and next_id != end_id:
                 match = cond_1(current_node, next_node, end_node)
                 if not match:
-                    print('not match')
+                    #print('not match')
                     continue
             if (next_node['level'] == -1) and (edge_data['flow'] < edge_data['capacity']):
                 queue.append(next_id)
@@ -104,7 +119,8 @@ def DFS_sendFlow(graph, current_id, end_id, flow_in=float('Inf'), path=[], paths
         if (next_node['level'] == (current_node['level']+1)) and residual_capacity > 0:
             # find minimum flow from u to t
             curr_flow_to_send = min(flow_in, residual_capacity)
-            path.append({'start': current_id, 'end': next_id, 'flow': flow_in, 'capacity': residual_capacity, 'curr_flow': edge_data['flow']})
+            #path.append({'start': current_id, 'end': next_id, 'flow': flow_in, 'capacity': residual_capacity, 'curr_flow': edge_data['flow']})
+            path.append({'start': current_id, 'end': next_id, 'capacity': residual_capacity})
             
             flow_sent = DFS_sendFlow(graph, next_id, end_id, flow_in=curr_flow_to_send, path=path, paths=paths)
             
