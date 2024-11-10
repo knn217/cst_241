@@ -1,14 +1,3 @@
-def set_node(node, level=-1):
-    node['level'] = level
-    return node
-
-def check_edge(edge, flow=0, capacity=100):
-    if 'flow' not in edge:
-        edge['flow'] = flow
-    if 'capacity' not in edge:
-        edge['capacity'] = capacity
-    return edge
-
 def cond_1(current_node, next_node, end_node):
     print(next_node)
     if next_node['osmid_original'] == end_node['osmid_original']:
@@ -35,15 +24,15 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=N
     # save nodes in level graph to reset later
     if level_graph:
         # reset node levels
-        for node_id in level_graph['nodes']:
+        for node_id in level_graph:
             node = graph.nodes[node_id]
             node['level'] = -1
         pass
     else:    
-        level_graph={'nodes': set(), 'edges': set()}
-    level_graph['nodes'].add(start_id)
+        level_graph=set()
+    level_graph.add(start_id)
     # Level of source vertex = 0
-    set_node(start_node, level=0)
+    start_node['level'] = 0
     
     # Create a queue, enqueue source vertex and mark source vertex as visited
     queue = []
@@ -62,10 +51,6 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=N
             next_node = graph.nodes[next_id]
             #print(f'next node: {next_id}, {next_node}')
             
-            if 'level' not in next_node:
-                next_node['level'] = -1
-            check_edge(edge_data)
-            
             # condition to put node in level map
             # condition: next node is closer to end node than current node
             if shortest_dist == 'cond_1':
@@ -76,11 +61,10 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=N
             if (next_node['level'] == -1) and (edge_data['flow'] < edge_data['capacity']):
                 queue.append(next_id)
                 # add ids to level graph
-                level_graph['nodes'].add(next_id)
-                level_graph['edges'].add((edge[:2]))
+                level_graph.add(next_id)
                 # Level of current vertex is level of parent + 1
-                set_node(next_node, level=current_node['level']+1)
-                check_edge(edge_data)
+                next_node['level'] = current_node['level'] + 1
+                
     reached_sink = False if ('level' not in end_node or end_node['level'] == -1) else True
     return reached_sink, level_graph
 
@@ -157,7 +141,7 @@ def DFS_sendFlow(graph, current_id, end_id, flow_in=float('Inf'), path=[], paths
     return total_flow
 
 def reset_map(graph, true_level_graph):
-    for current_id in true_level_graph['nodes']:
+    for current_id in true_level_graph:
         current_node = graph.nodes[current_id]
         current_node['level'] = -1        
         for edge in graph.edges(current_id, data=True):
@@ -174,19 +158,14 @@ def dinics(graph, start_id, end_id, shortest_dist=None):
     max_flow = 0
     paths = []
     level_graph = None
-    true_level_graph = {'nodes': set(), 'edges': set()}
+    true_level_graph = set()
     flow = 0
     while True:
         # 1. Build the level graph using BFS
         reached_sink, level_graph = BFS_buildLevelMap(graph, start_id, end_id, level_graph=level_graph, shortest_dist=shortest_dist)
-        for node_id in level_graph['nodes']:
-            node = graph.nodes[node_id]
-            #print(node_id, node['level'])
-            #print(graph.edges(node_id, data=True))
         
         #print(f'old true paths list: {true_paths_list}, {true_paths}')
-        true_level_graph['nodes'] |= level_graph['nodes']
-        true_level_graph['edges'] |= level_graph['edges']
+        true_level_graph |= level_graph
         #print(f'new true paths list: {true_paths_list}')
         if not reached_sink:
             break

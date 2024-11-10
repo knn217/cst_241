@@ -29,8 +29,12 @@ class ImageCanvasApp:
         self.map_name = 'map_drive.osm'
         self.graph = loadMap(self.map_name)
         # create capacity for edges
+        for node in self.graph.nodes(data=True):
+            node[1]['level'] = -1
+            #print(node)
         for edge in self.graph.edges(data=True):
             #print(f'old edge: {edge}')
+            edge[2]['flow'] = 0
             edge[2]['capacity'] = estimate_max_capacity(edge[2])
             #print(f'new edge: {edge}')
             
@@ -188,8 +192,8 @@ class ImageCanvasApp:
             return
         
         max_flow, paths, true_level_graph = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist=None)
-        #for path in paths:
-        #    print(path)
+        for path in paths:
+            print(path)
         print(len(paths))
         #print(true_level_graph)
         print(max_flow)
