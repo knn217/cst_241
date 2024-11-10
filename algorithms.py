@@ -155,8 +155,6 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=F
     '''
     start_node = graph.nodes[start_id]
     end_node = graph.nodes[end_id]
-    # Level of source vertex = 0
-    dinics_node(start_node, level=0)
     # save nodes in level graph to reset later
     if level_graph:
         # reset node levels
@@ -167,6 +165,8 @@ def BFS_buildLevelMap(graph, start_id, end_id, level_graph=None, shortest_dist=F
     else:    
         level_graph={'nodes': set(), 'edges': set()}
     level_graph['nodes'].add(start_id)
+    # Level of source vertex = 0
+    dinics_node(start_node, level=0)
     
     # Create a queue, enqueue source vertex and mark source vertex as visited
     queue = []
@@ -226,6 +226,7 @@ def DFS_sendFlow(graph, current_id, end_id, flow_in, path=[], paths=[]):
         path.append(flow_in)
         paths.append(path.copy())
         print(f'reached end: {path}')
+        path.pop()
         return flow_in
     total_flow = 0
 
@@ -295,6 +296,10 @@ def dinics(graph, start_id, end_id, shortest_dist=False):
     while True:
         # 1. Build the level graph using BFS
         reached_sink, level_graph = BFS_buildLevelMap(graph, start_id, end_id, level_graph=level_graph, shortest_dist=shortest_dist)
+        for node_id in level_graph['nodes']:
+            node = graph.nodes[node_id]
+            print(node['level'])
+        
         #print(f'old true paths list: {true_paths_list}, {true_paths}')
         true_level_graph['nodes'] |= level_graph['nodes']
         true_level_graph['edges'] |= level_graph['edges']
@@ -381,6 +386,14 @@ import networkx as nx
 
 def create_test_graph():
     G = nx.DiGraph()
+    nodes = [
+        (1, {'level': -1}),
+        (2, {'level': -1}),
+        (3, {'level': -1}),
+        (4, {'level': -1}),
+        (5, {'level': -1}),
+        (6, {'level': -1}),
+    ]
     edges = [
         (1, 2, {'flow': 0, 'capacity': 10}),
         (1, 3, {'flow': 0, 'capacity': 10}),
@@ -392,6 +405,7 @@ def create_test_graph():
         (5, 6, {'flow': 0, 'capacity': 10}),
         (4, 6, {'flow': 0, 'capacity': 10})
     ]
+    G.add_nodes_from(nodes)
     G.add_edges_from(edges)
     return G
 
