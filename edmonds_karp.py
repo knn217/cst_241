@@ -150,17 +150,21 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
                         # Reconstruct path
                         path = []
                         curr = sink
-                        while curr is not None:
-                            path.append(curr)
+                        curr2 = u
+                        while curr2 is not None:
+                            path.append({'start': curr2, 'end': curr})
+                            #print(path)
                             curr = parent[curr]
+                            curr2 = parent[curr2]
                         return list(reversed(path))
                     queue.append(v)
         return None
 
     def get_path_flow(path, residual):
         flow = float('inf')
-        for i in range(len(path) - 1):
-            u, v = path[i], path[i + 1]
+        for i in range(len(path)):
+            u, v = path[i]['start'], path[i]['end']
+            #print(residual, u, v)
             flow = min(flow, residual[u][v])
         return flow
 
@@ -175,8 +179,8 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
             
         path_flow = get_path_flow(path, residual_graph)
         
-        for i in range(len(path) - 1):
-            u, v = path[i], path[i + 1]
+        for i in range(len(path)):
+            u, v = path[i]['start'], path[i]['end']
             residual_graph[u][v] -= path_flow 
             residual_graph[v][u] += path_flow
         
@@ -190,4 +194,80 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
     elif len(all_routes) == 1 and all_routes[0]:
         all_routes.append(all_routes[0])
 
-    return max_flow, all_routes
+    return max_flow, all_routes, []
+
+#================================================================================
+
+import networkx as nx
+import numpy as np
+
+def create_test_graph():
+    G = nx.DiGraph()
+    nodes = [
+        (1, {'level': -1}),
+        (2, {'level': -1}),
+        (3, {'level': -1}),
+        (4, {'level': -1}),
+        (5, {'level': -1}),
+        (6, {'level': -1}),
+    ]
+    edges = [
+        (1, 2, {'flow': 0, 'capacity': 10}),
+        (1, 3, {'flow': 0, 'capacity': 10}),
+        (2, 5, {'flow': 0, 'capacity': 4}),
+        (2, 3, {'flow': 0, 'capacity': 2}),
+        (3, 4, {'flow': 0, 'capacity': 9}),
+        (2, 4, {'flow': 0, 'capacity': 8}),
+        (4, 5, {'flow': 0, 'capacity': 6}),
+        (5, 6, {'flow': 0, 'capacity': 10}),
+        (4, 6, {'flow': 0, 'capacity': 10}),
+        (3, 1, {'flow': 0, 'capacity': 0})
+    ]
+    G.add_nodes_from(nodes)
+    G.add_edges_from(edges)
+    return G
+
+
+np.random.seed(10)
+def estimate_max_capacity(data):
+    max_capacity = 0
+    if data['highway']  == 'trunk':
+      max_capacity = 500
+    elif data['highway']  == ['trunk', 'primary'] or data['highway'] == ['tertiary', 'secondary']:
+      max_capacity = 400
+    elif data['highway'] == 'primary':
+      max_capacity = 300
+    elif data['highway'] == 'primary_link' or data['highway'] == 'secondary':
+      max_capacity = 200
+    elif data['highway'] == 'secondary_link':
+      max_capacity = 150
+    elif data['highway'] == 'tertiary':
+      max_capacity = 100
+    elif data['highway'] == 'tertiary_link' or data['highway'] == 'living_street':
+      max_capacity = 70
+    elif data['highway'] == 'residential':
+      max_capacity = 30
+    else:
+      max_capacity = 20
+    return round(max_capacity*(1+np.random.uniform(-0.1, 0.1)))
+
+if __name__ == "__main__":
+    #G = loadMap('minigraph.osm')
+    #G = loadMap('newgraph_conso.osm')
+    G = create_test_graph()
+    print(G)
+    #for node in G.nodes:
+    #    print(f'node: {G.nodes[node]}')
+    #    print(f'edge: {G.edges(node, data=True)}')
+    #    print(f'edge i: {G.in_edges(node)}')
+    #    print(f'edge o: {G.out_edges(node)}')
+    
+    #source, sink = 533, 352
+    source, sink = 1, 6
+    
+    max_flow, paths, true_level_graph = find_maximum_flow_using_edmonds_karp_multidigraph(G, source, sink)
+    for path in paths:
+        print(path)
+    print(true_level_graph)
+    print(max_flow)
+        
