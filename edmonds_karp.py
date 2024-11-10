@@ -149,20 +149,22 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
                     if v == sink:
                         # Reconstruct path
                         path = []
-                        curr = sink
-                        curr2 = u
-                        while curr2 is not None:
-                            path.append({'start': curr2, 'end': curr})
+                        curr_s = u
+                        curr_e = sink
+                        max_flow = float('Inf')
+                        while curr_s is not None:
+                            max_flow = min(max_flow, residual_graph[curr_s][curr_e])
+                            path.append({'start': curr_s, 'end': curr_e, 'capacity': residual_graph[curr_s][curr_e]})
                             #print(path)
-                            curr = parent[curr]
-                            curr2 = parent[curr2]
-                        return list(reversed(path))
+                            curr_s = parent[curr_s]
+                            curr_e = parent[curr_e]
+                        return list(reversed(path)) + [max_flow]
                     queue.append(v)
         return None
 
     def get_path_flow(path, residual):
         flow = float('inf')
-        for i in range(len(path)):
+        for i in range(len(path)-1):
             u, v = path[i]['start'], path[i]['end']
             #print(residual, u, v)
             flow = min(flow, residual[u][v])
@@ -179,7 +181,7 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
             
         path_flow = get_path_flow(path, residual_graph)
         
-        for i in range(len(path)):
+        for i in range(len(path)-1):
             u, v = path[i]['start'], path[i]['end']
             residual_graph[u][v] -= path_flow 
             residual_graph[v][u] += path_flow

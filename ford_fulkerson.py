@@ -39,7 +39,7 @@ def fordFulkerson(paths, start, dest):
     residual_graph = buildResidualGraph(paths)
     max_flow = 0
     all_routes = []
-    min_travel_times = []
+    #max_flows = []
     if start not in residual_graph:
         return 0, [], []
     while True:
@@ -54,18 +54,19 @@ def fordFulkerson(paths, start, dest):
         path_flow = min(edge['capacity'] for edge in augmenting_path)
 
         # Store the path and its minimum travel time
+        augmenting_path.append(path_flow)
         all_routes.append(augmenting_path)
-        min_travel_times.append(path_flow)
+        #max_flows.append(path_flow)
 
         # Augment the flow along the path
-        for each_path in augmenting_path:
+        for each_path in augmenting_path[:-1]:
             u, v = each_path['start'], each_path['end']
             residual_graph[u][v] -= path_flow  # Reduce capacity in forward direction
             residual_graph[v][u] += path_flow  # Increase capacity in reverse direction
 
         max_flow += path_flow  # Increase the total max flow by the path's bottleneck capacity
 
-    return max_flow, all_routes, min_travel_times
+    return max_flow, all_routes, []
 
 #================================================================================
 
