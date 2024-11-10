@@ -4,8 +4,10 @@ from PIL import Image, ImageTk
 from extract import getDir
 from load_map import loadMap
 from collections import deque
-from algorithms import fordFulkerson, dinics, reset_map, estimate_max_capacity
+from algorithms import estimate_max_capacity
+from ford_fulkerson import fordFulkerson
 from edmonds_karp import find_maximum_flow_using_edmonds_karp
+from dinics import dinics, reset_map
 
 ratio = 111196.2878
 
@@ -16,6 +18,7 @@ class ImageCanvasApp:
         
         self.dim = {'width': 1344, 'height': 686}
         self.canvas = tk.Canvas(root, width=self.dim['width'], height=self.dim['height'], bg='white')
+        # pack canvas after all buttons
         self.canvas.pack()
 
         self.image = None
@@ -47,8 +50,6 @@ class ImageCanvasApp:
 
         # Load an image
         self.load_image(getDir('map.png'))
-        self.load_image_button = tk.Button(root, text="Print flow/paths", command=self.print_flow_paths)
-        self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
         
         # Create an entry widget for user input
         #self.entry = tk.Entry(self.root, width=40)
@@ -57,6 +58,18 @@ class ImageCanvasApp:
         # Create a button that will call the print_text function when clicked
         self.print_button = tk.Button(self.root, text="Toggle nodes", command=self.toggle_node)
         self.print_button.pack(side=tk.LEFT, padx=10, pady=10)  # Pack the button next to the entry
+        
+        # ford fulkerson
+        self.load_image_button = tk.Button(root, text="ford ful", command=self.dinics_flow_paths)
+        self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
+
+        # edmonds karp
+        self.load_image_button = tk.Button(root, text="ed karp", command=self.dinics_flow_paths)
+        self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
+
+        # dinics
+        self.load_image_button = tk.Button(root, text="dinics", command=self.dinics_flow_paths)
+        self.load_image_button.pack(side=tk.LEFT, padx=10, pady=10)
 
         self.canvas.bind("<Button-1>", self.on_mouse_lclick)
         self.canvas.bind("<Button-2>", self.on_mouse_rclick)
@@ -134,7 +147,7 @@ class ImageCanvasApp:
                 return node_rect
         return None
     
-    def print_flow_paths(self, algo=find_maximum_flow_using_edmonds_karp, reset=reset_map):
+    def ff_flow_paths(self):
         if not self.start_node:
             print('No start node picked')
             return
@@ -142,29 +155,45 @@ class ImageCanvasApp:
             print('No end node picked')
             return
         
-        max_flow, paths_list, true_paths_list, true_level_graph = algo(self.graph, self.start_node[0], self.end_node[0])
-        for path in paths_list:
-            # print path
-            print(f'paths found: {path}')
-            
-        for path in true_paths_list:
-            # print path
-            print(f'true paths found: {path}')
+        max_flow, paths, true_level_graph = fordFulkerson(self.graph, self.start_node[0], self.end_node[0])
+        for path in paths:
+            print(path)
+        print(len(paths))
+        print(true_level_graph)
+        print(max_flow)
+        return
+    
+    def ek_flow_paths(self):
+        if not self.start_node:
+            print('No start node picked')
+            return
+        if not self.end_node:
+            print('No end node picked')
+            return
         
-        print(f'number of paths: {len(paths_list)}')
-        print(f'number of true paths: {len(true_paths_list)}')
-        if true_level_graph:
-            print(len(true_level_graph['nodes']), len(true_level_graph['edges']))
-        #for node in true_level_graph:
-        #    # draw nodes
-        #    for node_rect in self.node_layer:
-        #        if 
+        max_flow, paths, true_level_graph = find_maximum_flow_using_edmonds_karp(self.graph, self.start_node[0], self.end_node[0])
+        for path in paths:
+            print(path)
+        print(len(paths))
+        print(true_level_graph)
+        print(max_flow)
+        return
+    
+    def dinics_flow_paths(self):
+        if not self.start_node:
+            print('No start node picked')
+            return
+        if not self.end_node:
+            print('No end node picked')
+            return
         
-        print(f'max flow: {max_flow}')
-        
-        # reset_map
-        if algo == dinics:
-            reset(self.graph, true_level_graph)
+        max_flow, paths, true_level_graph = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist='cond_1')
+        for path in paths:
+            print(path)
+        print(len(paths))
+        print(true_level_graph)
+        print(max_flow)
+        reset_map(self.graph, true_level_graph)
         return
     
     def toggle_node(self):

@@ -9,7 +9,7 @@ def check_edge(edge, flow=0, capacity=100):
         edge['capacity'] = capacity
     return edge
 
-def condition(current_node, next_node, end_node):
+def cond_1(current_node, next_node, end_node):
     print(next_node)
     if next_node['osmid_original'] == end_node['osmid_original']:
         return True
@@ -23,7 +23,7 @@ def condition(current_node, next_node, end_node):
     
     return cond_1# and cond_2 
 
-def BFS_buildLevelMap(graph, start_id, end_id, rev_graph=[], level_graph=None, shortest_dist=False):
+def BFS_buildLevelMap(graph, start_id, end_id, rev_graph=[], level_graph=None, shortest_dist=None):
     '''
     graph: the graph
     start_id: id of start node
@@ -73,8 +73,8 @@ def BFS_buildLevelMap(graph, start_id, end_id, rev_graph=[], level_graph=None, s
             
             # condition to put node in level map
             # condition: next node is closer to end node than current node
-            if shortest_dist:
-                match = condition(current_node, next_node, end_node)
+            if shortest_dist == 'cond_1':
+                match = cond_1(current_node, next_node, end_node)
                 if not match:
                     print('not match')
                     continue
@@ -173,7 +173,7 @@ def reset_map(graph, true_level_graph):
             edge_data['flow'] = 0
     return
     
-def dinics(graph, start_id, end_id, shortest_dist=False):
+def dinics(graph, start_id, end_id, shortest_dist=None):
     """Find the maximum flow from source to sink"""
     max_flow = 0
     paths = []
