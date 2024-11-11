@@ -66,7 +66,7 @@ def fordFulkerson(paths, start, dest):
 
         max_flow += path_flow  # Increase the total max flow by the path's bottleneck capacity
 
-    return max_flow, all_routes, []
+    return max_flow, all_routes
 
 #================================================================================
 
@@ -137,9 +137,8 @@ if __name__ == "__main__":
     #source, sink = 533, 352
     source, sink = 1, 6
     
-    max_flow, paths, true_level_graph = fordFulkerson(G, source, sink)
+    max_flow, paths = fordFulkerson(G, source, sink)
     for path in paths:
         print(path)
-    print(true_level_graph)
     print(max_flow)
         

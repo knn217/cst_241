@@ -7,7 +7,7 @@ from collections import deque
 from algorithms import estimate_max_capacity
 from ford_fulkerson import fordFulkerson
 from edmonds_karp import find_maximum_flow_using_edmonds_karp, find_maximum_flow_using_edmonds_karp_multidigraph
-from dinics import dinics, reset_map
+from dinics import dinics
 
 ratio = 111196.2878
 
@@ -159,11 +159,10 @@ class ImageCanvasApp:
             print('No end node picked')
             return
         
-        max_flow, paths, true_level_graph = fordFulkerson(self.graph, self.start_node[0], self.end_node[0])
+        max_flow, paths = fordFulkerson(self.graph, self.start_node[0], self.end_node[0])
         for path in paths:
             print(path)
         print(len(paths))
-        print(true_level_graph)
         print(max_flow)
         return
     
@@ -175,11 +174,10 @@ class ImageCanvasApp:
             print('No end node picked')
             return
         
-        max_flow, paths, true_level_graph = find_maximum_flow_using_edmonds_karp_multidigraph(self.graph, self.start_node[0], self.end_node[0])
+        max_flow, paths = find_maximum_flow_using_edmonds_karp_multidigraph(self.graph, self.start_node[0], self.end_node[0])
         for path in paths:
             print(path)
         print(len(paths))
-        print(true_level_graph)
         print(max_flow)
         return
     
@@ -191,13 +189,12 @@ class ImageCanvasApp:
             print('No end node picked')
             return
         
-        max_flow, paths, true_level_graph = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist=None)
+        max_flow, paths = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist=None)
         for path in paths:
             print(path)
         print(len(paths))
         #print(true_level_graph)
         print(max_flow)
-        reset_map(self.graph, true_level_graph)
         return
     
     def toggle_node(self):

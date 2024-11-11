@@ -188,9 +188,8 @@ if __name__ == "__main__":
     #     edge[2]['capacity'] = estimate_max_capacity(edge[2])
     #     #print(f'new edge: {edge}')
         
-    max_flow, paths, true_level_graph = fordFulkerson(G, source, sink)
+    max_flow, paths = fordFulkerson(G, source, sink)
     for path in paths:
         print(path)
-    print(true_level_graph)
     print(max_flow)
     #print(level_graph)

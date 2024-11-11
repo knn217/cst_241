@@ -50,7 +50,8 @@ def find_maximum_flow_using_edmonds_karp(graph, source, sink):
         path = []
         current = sink
         while current != source:
-            path.append(current)
+            #path.append(current)
+            path.append({'start': parent[current], 'end': current, 'capacity': residual_graph[parent[current]][current]})
             current = parent[current]
         path.append(source)
         return list(reversed(path))
@@ -90,7 +91,7 @@ def find_maximum_flow_using_edmonds_karp(graph, source, sink):
         
         parent = {node: None for node in graph.nodes()}
 
-    return max_flow, paths, []
+    return max_flow, paths
 
 
 def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
@@ -128,7 +129,7 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
             # Add reverse edge if it doesn't exist
             if u not in residual[v]:
                 residual[v][u] = 0
-                
+        print(residual)
         return residual
 
     def bfs(residual):
@@ -196,7 +197,7 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
     elif len(all_routes) == 1 and all_routes[0]:
         all_routes.append(all_routes[0])
 
-    return max_flow, all_routes, []
+    return max_flow, all_routes
 
 #================================================================================
 
@@ -267,9 +268,8 @@ if __name__ == "__main__":
     #source, sink = 533, 352
     source, sink = 1, 6
     
-    max_flow, paths, true_level_graph = find_maximum_flow_using_edmonds_karp_multidigraph(G, source, sink)
+    max_flow, paths = find_maximum_flow_using_edmonds_karp_multidigraph(G, source, sink)
     for path in paths:
         print(path)
-    print(true_level_graph)
     print(max_flow)
         
