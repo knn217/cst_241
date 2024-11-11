@@ -72,9 +72,13 @@ class ImageCanvasApp:
         self.button_4 = tk.Button(self.left_frame, text="dinics", command=self.dinics_flow_paths)
         self.button_4.pack(pady=0)
 
-        # dinics shortest path
-        self.button_5 = tk.Button(self.left_frame, text="dinics_shortest_path", command=self.dinics_shortest_paths)
+        # edmonds karp shortest path
+        self.button_5 = tk.Button(self.left_frame, text="edkarp_shortest_path", command=self.ek_shortest_paths)
         self.button_5.pack(pady=0)
+
+        # dinics shortest path
+        self.button_6 = tk.Button(self.left_frame, text="dinics_shortest_path", command=self.dinics_shortest_paths)
+        self.button_6.pack(pady=0)
 
         # Create a ScrolledText widget for the print area
         self.print_area = scrolledtext.ScrolledText(self.left_frame, width=50, height=40, wrap=tk.WORD, font = ("Calibri", 8))
@@ -221,6 +225,26 @@ class ImageCanvasApp:
         
         start_time = time.time()
         max_flow, paths = dinics(self.graph, self.start_node[0], self.end_node[0], shortest_dist=None)
+        end_time = time.time()
+        runtime = end_time - start_time
+                
+        for path in paths:
+            self.log_message(f'path: {path}')
+        self.log_message(f'Found: {len(paths)} paths')
+        self.log_message(f'Max flow: {max_flow}')
+        self.log_message(f'Runtime: {runtime}')
+        return
+    
+    def ek_shortest_paths(self):
+        if not self.start_node:
+            self.log_message('No start node picked')
+            return
+        if not self.end_node:
+            self.log_message('No end node picked')
+            return
+        
+        start_time = time.time()
+        max_flow, paths = find_maximum_flow_using_edmonds_karp_multidigraph(self.graph, self.start_node[0], self.end_node[0], shortest_dist='cond_1')
         end_time = time.time()
         runtime = end_time - start_time
                 

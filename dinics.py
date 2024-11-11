@@ -1,15 +1,14 @@
 from collections import deque
 
 def cond_1(residual_graph, curr_id, next_id, end_id):
-    curr_x, curr_y = residual_graph[curr_id][curr_id][1:]
-    next_x, next_y = residual_graph[next_id][next_id][1:]
-    end_x , end_y  = residual_graph[end_id][end_id][1:]
+    curr_x, curr_y = residual_graph[curr_id][curr_id][:2]
+    next_x, next_y = residual_graph[next_id][next_id][:2]
+    end_x , end_y  = residual_graph[end_id][end_id][:2]
     
     # estimate length with x, y
     curr_end = ((end_x - curr_x)**2 + (end_y - curr_y)**2)**0.5
     next_end = ((end_x - next_x)**2 + (end_y - next_y)**2)**0.5
     curr_next = ((next_x - curr_x)**2 + (next_y - curr_y)**2)**0.5
-    
     
     cond_1 = curr_end > (3)*(curr_next + next_end)
     #cond_2 = curr_end < (curr_next + next_end)
@@ -17,9 +16,9 @@ def cond_1(residual_graph, curr_id, next_id, end_id):
     return cond_1# and cond_2 
 
 def cond_2(residual_graph, curr_id, next_id, end_id):
-    curr_x, curr_y = residual_graph[curr_id][curr_id][1:]
-    next_x, next_y = residual_graph[next_id][next_id][1:]
-    end_x , end_y  = residual_graph[end_id][end_id][1:]
+    curr_x, curr_y = residual_graph[curr_id][curr_id][:2]
+    next_x, next_y = residual_graph[next_id][next_id][:2]
+    end_x , end_y  = residual_graph[end_id][end_id][:2]
     
     # path length since this is the only path
     curr_next = residual_graph[curr_id][next_id][2]
@@ -40,12 +39,12 @@ def get_residual_graph(graph):
                 residual[u] = {}
                 # Add level, x, y
                 node_u = graph.nodes[u]
-                residual[u][u] = [-1, node_u.get('x', 0), node_u.get('y', 0)]
+                residual[u][u] = [node_u.get('x', 0), node_u.get('y', 0), -1]
             if v not in residual:
                 residual[v] = {}
                 # Add level, x, y
                 node_v = graph.nodes[v]
-                residual[v][v] = [-1, node_v.get('x', 0), node_v.get('y', 0)]
+                residual[v][v] = [node_v.get('x', 0), node_v.get('y', 0), -1]
             
             # Add forward edge [flow, capacity, length]
             if v not in residual[u]:
@@ -73,19 +72,19 @@ def BFS_buildLevelMap(residual_graph, start_id, end_id, shortest_dist=None):
     #print(residual_graph)
     for u in residual_graph:
         #print(f'node_id: {u}')
-        residual_graph[u][u][0] = 0 if u ==start_id else -1
+        residual_graph[u][u][-1] = 0 if u ==start_id else -1
     
     # Create a queue, enqueue source vertex and mark source vertex as visited
     queue = deque([start_id])
     
     while queue:
         u = queue.popleft() # pop the 1st id
-        level_u = residual_graph[u][u][0] # current node's level
+        level_u = residual_graph[u][u][-1] # current node's level
         for v in residual_graph[u]:
             if v == u:
                 continue
             flow_e, cap_e, len_e = residual_graph[u][v] # edge data: flow, capacity
-            level_v = residual_graph[v][v][0] # next node's level
+            level_v = residual_graph[v][v][-1] # next node's level
             
             # condition to put node in level map
             # condition: next node is closer to end node than current node
@@ -98,7 +97,7 @@ def BFS_buildLevelMap(residual_graph, start_id, end_id, shortest_dist=None):
                 # add v to queue
                 queue.append(v)
                 # update next node's level
-                residual_graph[v][v][0] = level_u + 1
+                residual_graph[v][v][-1] = level_u + 1
                 
     reached_sink = False if (residual_graph[end_id][end_id] == -1) else True
     return reached_sink
@@ -125,13 +124,13 @@ def DFS_sendFlow(residual_graph, u, end_id, flow_in=float('Inf'), path=[], paths
         return flow_in
     total_flow = 0
 
-    level_u = residual_graph[u][u][0] # current node's level
+    level_u = residual_graph[u][u][-1] # current node's level
     # Traverse all adjacent nodes/edges one -by -one
     for v in residual_graph[u]:
         if v == u:
             continue
         flow_e, cap_e, len_e = residual_graph[u][v] # edge data: flow, capacity
-        level_v = residual_graph[v][v][0] # next node's level
+        level_v = residual_graph[v][v][-1] # next node's level
         residual_cap = cap_e - flow_e
         
         # prunes dead ends by ensuring that:
