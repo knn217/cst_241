@@ -150,7 +150,8 @@ class ImageCanvasApp:
         self.start_node = self.find_closest_point(lon, lat, color=color)
         if self.start_node:
             self.canvas.itemconfig(self.start_node[1], outline="blue")
-            self.log_message(f"Left clicked at: <<{self.start_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.start_node}")
+            node = self.graph[self.start_node[0]]
+            self.log_message(f"Left clicked at: <<{self.start_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {node}")
         return self.start_node
     
     def on_mouse_rclick(self, event, color='green'):
@@ -162,7 +163,8 @@ class ImageCanvasApp:
         self.end_node = self.find_closest_point(lon, lat, color=color)
         if self.end_node:
             self.canvas.itemconfig(self.end_node[1], outline="green")
-            self.log_message(f"Right clicked at: <<{self.end_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {self.end_node}")
+            node = self.graph[self.end_node[0]]
+            self.log_message(f"Right clicked at: <<{self.end_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {node}")
         return self.end_node
         
     def find_closest_point(self, lon, lat, color='red'):
