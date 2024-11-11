@@ -129,7 +129,7 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink):
             # Add reverse edge if it doesn't exist
             if u not in residual[v]:
                 residual[v][u] = 0
-        print(residual)
+        #print(residual)
         return residual
 
     def bfs(residual):
