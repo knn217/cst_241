@@ -20,9 +20,10 @@ class ImageCanvasApp:
         self.image = None
         self.image_layer = None
         self.node_layer = []
+        self.node_layer_1 = [None, None]
         self.edge_layer = []
         
-        self.map_name = 'map_drive.osm'
+        self.map_name = 'map_all.osm'
         self.graph = loadMap(self.map_name)
         # create capacity for edges
         for node in self.graph.nodes(data=True):
@@ -45,7 +46,7 @@ class ImageCanvasApp:
             }
         self.dim = {'width': 1065, 'height': 728}
         self.ratio = {'x': self.dim['width']/self.bbox['range_lon'], 'y': self.dim['height']/self.bbox['range_lat']}
-        self.dist = 3
+        self.dist = 2
         self.start_node = None
         self.end_node = None
 
@@ -149,7 +150,11 @@ class ImageCanvasApp:
             self.canvas.itemconfig(self.start_node[1], outline="red")
         self.start_node = self.find_closest_point(lon, lat, color=color)
         if self.start_node:
-            self.canvas.itemconfig(self.start_node[1], outline="blue")
+            x, y = self.reorient(x, y)
+            if not self.node_layer_1[0]:
+                self.node_layer_1[0] = self.canvas.create_rectangle(x-self.dist-1, y-self.dist-1, x+self.dist+1, y+self.dist+1, outline='blue', fill='blue')
+            else:
+                self.canvas.coords(self.node_layer_1[0], x-self.dist-1, y-self.dist-1, x+self.dist+1, y+self.dist+1)
             node = self.graph[self.start_node[0]]
             self.log_message(f"Left clicked at: <<{self.start_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {node}")
         return self.start_node
@@ -162,7 +167,11 @@ class ImageCanvasApp:
             self.canvas.itemconfig(self.end_node[1], outline="red")
         self.end_node = self.find_closest_point(lon, lat, color=color)
         if self.end_node:
-            self.canvas.itemconfig(self.end_node[1], outline="green")
+            x, y = self.reorient(x, y)
+            if not self.node_layer_1[1]:
+                self.node_layer_1[1] = self.canvas.create_rectangle(x-self.dist-1, y-self.dist-1, x+self.dist+1, y+self.dist+1, outline='green', fill='green')
+            else:
+                self.canvas.coords(self.node_layer_1[1], x-self.dist-1, y-self.dist-1, x+self.dist+1, y+self.dist+1)
             node = self.graph[self.end_node[0]]
             self.log_message(f"Right clicked at: <<{self.end_node[0]}>> ({x}, {y}) => ({lon}, {lat}) => node: {node}")
         return self.end_node

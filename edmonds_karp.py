@@ -173,8 +173,8 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink, short
                         max_flow = float('Inf')
                         while curr_s is not None:
                             max_flow = min(max_flow, residual_graph[curr_s][curr_e][0])
-                            traveled = path[-1].get('traveled', 0) if path else 0
-                            path.append({'start': curr_s, 'end': curr_e, 'capacity': residual_graph[curr_s][curr_e][0], 'length': residual_graph[curr_s][curr_e][1], 'traveled': residual_graph[curr_s][curr_e][1] + traveled})
+                            #traveled = path[-1].get('traveled', 0) if path else 0
+                            path.append({'start': curr_s, 'end': curr_e, 'capacity': residual_graph[curr_s][curr_e][0], 'length': residual_graph[curr_s][curr_e][1], 'traveled': residual_graph[curr_s][curr_e][1]})
                             #print(path)
                             curr_s = parent[curr_s]
                             curr_e = parent[curr_e]
@@ -216,6 +216,12 @@ def find_maximum_flow_using_edmonds_karp_multidigraph(graph, source, sink, short
     elif len(all_routes) == 1 and all_routes[0]:
         all_routes.append(all_routes[0])
 
+    for route in all_routes:
+        accum = 0
+        for edge in route[:-1]:
+            accum += edge['traveled']
+            edge['traveled'] = accum
+            
     return max_flow, all_routes
 
 #================================================================================

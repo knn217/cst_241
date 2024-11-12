@@ -10,7 +10,7 @@ def cond_1(residual_graph, curr_id, next_id, end_id):
     next_end = ((end_x - next_x)**2 + (end_y - next_y)**2)**0.5
     curr_next = ((next_x - curr_x)**2 + (next_y - curr_y)**2)**0.5
     
-    cond_1 = curr_end > (3)*(curr_next + next_end)
+    cond_1 = 1.15 * curr_end > (curr_next + next_end) # 1.15 is best balance for shortest path but still found path
     #cond_2 = curr_end < (curr_next + next_end)
     
     return cond_1# and cond_2 
