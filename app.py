@@ -22,7 +22,7 @@ class ImageCanvasApp:
         self.node_layer = []
         self.edge_layer = []
         
-        self.map_name = 'map_all.osm'
+        self.map_name = 'map_drive.osm'
         self.graph = loadMap(self.map_name)
         # create capacity for edges
         for node in self.graph.nodes(data=True):

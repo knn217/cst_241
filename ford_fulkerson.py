@@ -35,6 +35,32 @@ def dfs(residual_graph, start, dest, visited, path):
                 return result
     return None
 
+def dfs_iterative(residual_graph, start, dest):
+    # Stack to keep track of nodes, with each entry containing the current node and path
+    stack = [(start, [])]
+    visited = set()
+
+    while stack:
+        current_node, path = stack.pop()
+
+        # If destination is reached, return the path
+        if current_node == dest:
+            return path
+
+        # Mark the node as visited
+        if current_node not in visited:
+            visited.add(current_node)
+
+            # Explore neighbors with positive capacity
+            for neighbor, capacity in residual_graph[current_node].items():
+                if neighbor not in visited and capacity > 0:
+                    new_path = path + [{'start': current_node, 'end': neighbor, 'capacity': capacity}]
+                    stack.append((neighbor, new_path))
+
+    # No path found
+    return None
+
+
 def fordFulkerson(paths, start, dest):
     residual_graph = buildResidualGraph(paths)
     max_flow = 0
@@ -44,8 +70,8 @@ def fordFulkerson(paths, start, dest):
         return 0, [], []
     while True:
         # Find an augmenting path using DFS
-        visited = set()
-        augmenting_path = dfs(residual_graph, start, dest, visited, [])
+        #visited = set()
+        augmenting_path = dfs_iterative(residual_graph, start, dest)
 
         if augmenting_path is None:
             break  # No more augmenting paths
